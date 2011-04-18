@@ -1,0 +1,11 @@
+# A small ttd (Token- and Type-Definitions) file defining a sequence of pairs
+
+# TOKENS
+id := "[a-zA-Z][a-zA-Z0-9]*"
+(  := "\("
+)  := "\)"
+,  := ","
+
+# TYPES
+pair ::= ( id , id )
+pairs ::= pair pairs |

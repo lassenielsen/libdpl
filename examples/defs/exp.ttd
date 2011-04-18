@@ -1,0 +1,22 @@
+# A small ttd (Token- and Type-Definitions) file defining a sequence of pairs
+
+# TOKENS
+    := "\s+"
+num := "[0-9][0-9]*"
+id  := "[a-zA-Z][a-zA-Z0-9]*"
+~   := "~"
+(   := "\("
+)   := "\)"
++   := "\+"
+-   := "\-"
+*   := "\*"
+/   := "/"
+,   := ","
+
+# TYPES
+exp ::= exp + exp | exp - exp | exp2
+exp2 ::= exp2 * exp2 | exp2 / exp2 | exp3
+exp3 ::= ~ exp3 | exp4
+exp4 ::= num | id ( exps ) | ( exp )
+exps ::= | exps2
+exps2 ::= exp | exp , exps2
