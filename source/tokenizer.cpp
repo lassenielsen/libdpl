@@ -20,7 +20,6 @@ Tokenizer::Tokenizer() // {{{
 : myPos(0)
 {
   myTokenDefs.clear();
-  myCompressed="";
   myRE=NULL;
   myStar=NULL;
 } // }}}
@@ -213,16 +212,16 @@ token Tokenizer::PopToken() // {{{
     token_pre+=token_content;
     token_content="";
     // Find next token
-    if (myCompressed.size()<=myPos) // no value
+    if (myCompressed.GetLength()<=myPos) // no value
     { token_name="_ERROR";
       token_content="EOF";
     }
-    else if (myCompressed[myPos]=='0') // end of tokens
+    else if (not myCompressed.GetBit(myPos)) // end of tokens
     { token_name="_EOF";
       token_content="";
-      myCompressed="";
+      myCompressed=BitCode();
     }
-    else if (myCompressed[myPos]=='1') // contains token
+    else if (myCompressed.GetBit(myPos)) // contains token
     { ++myPos; // myCompressed=myCompressed.substr(1);
       // use myPos int pos=0;
       RV *token_value=myRE->Decompress(myCompressed,myPos);
@@ -234,17 +233,17 @@ token Tokenizer::PopToken() // {{{
     }
     else
     { token_name="_ERROR";
-      token_content=(string)"Bad compression: " + myCompressed.substr(myPos);
+      token_content=(string)"Bad compression: " + myCompressed.ToString().substr(myPos);
     }
   }
-  if (myPos>myCompressed.size())
-  { myPos = myCompressed.size();
-    myCompressed="";
+  if (myPos>myCompressed.GetLength())
+  { myPos = 0;
+    myCompressed=BitCode();
   }
-  else if (myPos >= 4096 || myCompressed.size()<=myPos) // remove chunk from buffer
-  { myCompressed=myCompressed.substr(myPos);
-    myPos=0;
-  }
+//  else if (myPos >= 4096 || myCompressed.GetLength()<=myPos) // remove chunk from buffer
+//  { myCompressed=myCompressed.substr(myPos);
+//    myPos=0;
+//  }
   // Return found token
   return token(token_name,token_content,token_pre);
 }; // }}}
@@ -271,5 +270,5 @@ string Tokenizer::Serialize(const vector<token> &source) // {{{
 
 bool Tokenizer::Empty() // {{{
 {
-  return myCompressed.size()<=myPos;
+  return myCompressed.GetLength()<=myPos;
 } // }}}

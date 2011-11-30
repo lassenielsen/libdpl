@@ -118,7 +118,7 @@ class Tokenizer // {{{
 
   private:
     std::vector<tokendef> myTokenDefs;
-    std::string myCompressed;
+    BitCode myCompressed;
     int myPos;
     RE *myRE;
     RE *myStar;
