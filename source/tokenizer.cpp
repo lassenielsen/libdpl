@@ -188,14 +188,10 @@ void Tokenizer::SetBuffer(const string &buffer) // {{{
     delete myStar;
   myRE = build_fullre(myTokenDefs);
   myStar = new RE_Star(myRE->Copy());
-  //NFA nfa(*re);
-  //DFA dfa(nfa,false);
-  //myCompressed = dfa.Compress(buffer);
   FRCA *frca = FRCA::Create(myStar, buffer.size());
   frca->AddSuffix(buffer,buffer.size());
   int pos=0;
   myCompressed = frca->Compress(pos);
-  //cout << "Compressed Size: " << myCompressed.size() << endl;
   delete frca;
   myPos=0;
 }; // }}}
