@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 #include <rcp/re.hpp>
+#include <rcp/bitcode.hpp>
 
 namespace dpl
 {
@@ -120,8 +121,7 @@ class Tokenizer // {{{
     std::vector<tokendef> myTokenDefs;
     BitCode myCompressed;
     int myPos;
-    RE *myRE;
-    RE *myStar;
+    RE_Star *myStar;
 }; // }}}
 
 }

@@ -20,7 +20,6 @@ Tokenizer::Tokenizer() // {{{
 : myPos(0)
 {
   myTokenDefs.clear();
-  myRE=NULL;
   myStar=NULL;
 } // }}}
 
@@ -28,7 +27,6 @@ Tokenizer::~Tokenizer() // {{{
 { if (myStar!=NULL)
     delete myStar;
   myStar = NULL;
-  myRE = NULL;
 } // }}}
 
 void string_replace( string &source, const string &find, const string &replace ) // {{{
@@ -182,12 +180,9 @@ int tokenid(vector<tokendef> &tokens, const RV &value, int start=0, int end=-1) 
 
 void Tokenizer::SetBuffer(const string &buffer) // {{{
 { // Compress buffer using current tokens
-  if (myRE!=NULL)
-    delete myRE;
   if (myStar!=NULL)
     delete myStar;
-  myRE = build_fullre(myTokenDefs);
-  myStar = new RE_Star(myRE->Copy());
+  myStar = new RE_Star(build_fullre(myTokenDefs));
   FRCA *frca = FRCA::Create(myStar, buffer.size());
   frca->AddSuffix(buffer,buffer.size());
   int pos=0;
@@ -198,7 +193,7 @@ void Tokenizer::SetBuffer(const string &buffer) // {{{
 
 token Tokenizer::PopToken() // {{{
 {
-  if (myRE==NULL)
+  if (myStar==NULL)
     return token("_ERROR","RE uninitialized","");
   string token_pre="";
   string token_name="";
@@ -212,20 +207,20 @@ token Tokenizer::PopToken() // {{{
     { token_name="_ERROR";
       token_content="EOF";
     }
-    else if (not myCompressed.GetBit(myPos)) // end of tokens
+    else if (myCompressed.GetBit(myPos)==BC_NIL) // end of tokens
     { token_name="_EOF";
       token_content="";
       myCompressed=BitCode();
     }
-    else if (myCompressed.GetBit(myPos)) // contains token
+    else if (myCompressed.GetBit(myPos)==BC_CONS) // contains token
     { ++myPos; // myCompressed=myCompressed.substr(1);
       // use myPos int pos=0;
-      RV *token_value=myRE->Decompress(myCompressed,myPos);
+      RV *token_value=myStar->GetSub().Decompress(myCompressed,myPos);
       int tid=tokenid(myTokenDefs,*token_value); // Find index of tokendef
       token_name=myTokenDefs[tid].name;
       token_content=token_value->Flatten();
       delete token_value;
-      // incremented by myRE->Decompress // myCompressed=myCompressed.substr(pos);
+      // myPos incremented by Decompress
     }
     else
     { token_name="_ERROR";
