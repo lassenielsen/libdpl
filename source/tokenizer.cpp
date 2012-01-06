@@ -207,12 +207,12 @@ token Tokenizer::PopToken() // {{{
     { token_name="_ERROR";
       token_content="EOF";
     }
-    else if (myCompressed.GetBit(myPos)==BC_NIL) // end of tokens
+    else if (myCompressed.GetBit(myPos)==BitCode::NIL) // end of tokens
     { token_name="_EOF";
       token_content="";
       myCompressed=BitCode();
     }
-    else if (myCompressed.GetBit(myPos)==BC_CONS) // contains token
+    else if (myCompressed.GetBit(myPos)==BitCode::CONS) // contains token
     { ++myPos; // myCompressed=myCompressed.substr(1);
       // use myPos int pos=0;
       RV *token_value=myStar->GetSub().Decompress(myCompressed,myPos);
