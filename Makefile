@@ -13,9 +13,9 @@
 name = dpl
 version = 1.5.0
 libname = lib$(name).so
-libname = lib$(name).so
+#OS_LINUXlibname = lib$(name).so
 #OS_MAClibname = lib$(name).dylib
-libversion = .$(version)
+#OS_LINUXlibversion = .$(version)
 #OS_MAClibversion =
 COMMENT = OS_
 OS_AUTO = $(shell uname -s)
@@ -25,7 +25,7 @@ ctags = ctags
 opt = -O3
 args = -fPIC $(opt) -I./include/
 #OS_MAClibs = 
-libs = -lrcp
+#OS_LINUXlibs = -lrcp
 
 library_objects = \
   objects/tokenizer.o \
@@ -69,27 +69,27 @@ include/$(name)/config.hpp:
 	@echo "#define CONFIG_DPL" >> include/$(name)/config.hpp
 	@echo "#include <string>" >> include/$(name)/config.hpp
 #OS_MAC	@echo "#define OS_X" >> include/$(name)/config.hpp
-	@echo "#define OS_LINUX" >> include/$(name)/config.hpp
+#OS_LINUX	@echo "#define OS_LINUX" >> include/$(name)/config.hpp
 	@echo "#endif" >> include/$(name)/config.hpp
 
 install: $(libname)$(libversion)
 	@echo "Copying library"
 	cp $(libname)$(libversion) /usr/lib/
-	ln -f -s /usr/lib/$(libname)$(libversion) /usr/lib/$(libname)
+#OS_LINUX	ln -f -s /usr/lib/$(libname)$(libversion) /usr/lib/$(libname)
 	@echo "Copying include-files"
 	mkdir -p /usr/include/$(name)
 	cp include/$(name)/*.hpp /usr/include/$(name)/
 	chmod -R a+rx /usr/include/$(name)
-	@echo "Reindexing libraries"
-	ldconfig -n /usr/lib
+#OS_LINUX	@echo "Reindexing libraries"
+#OS_LINUX	ldconfig -n /usr/lib
 
 uninstall:
 	@echo "Removing library"
 	rm -f /usr/lib/$(libname)*
 	@echo "Removing include-files"
 	rm -Rf /usr/include/$(name)
-	@echo "Reindexing libraries"
-	ldconfig -n /usr/lib
+#OS_LINUX	@echo "Reindexing libraries"
+#OS_LINUX	ldconfig -n /usr/lib
 
 clean:
 	touch clean~
@@ -151,7 +151,7 @@ deb: $(libname)$(libversion)
 	rm -Rf debs/lib$(name)_$(version)_i386
 
 $(libname)$(libversion): $(library_objects)
-	$(compiler) -shared -Wl,-soname,$(libname).1 -o $(libname)$(libversion) $(library_objects) $(libs)
+#OS_LINUX	$(compiler) -shared -Wl,-soname,$(libname).1 -o $(libname)$(libversion) $(library_objects) $(libs)
 #OS_MAC	$(compiler) -dynamiclib -o $(libname) $(library_objects) $(libs)
 
 objects/%.o: source/%.cpp include/$(name)/*.hpp  include/$(name)/config.hpp
