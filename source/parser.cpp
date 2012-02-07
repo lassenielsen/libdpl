@@ -12,6 +12,16 @@ bnf_case::bnf_case(const string &name) // {{{
 {
 } // }}}
 
+static Tokenizer _BNFTokenizer;
+int _INIT_BNFTokenizer()
+{
+  _BNFTokenizer.DefToken("","[ \t\r\n][ \t\r\n]*",0); // Whitespace
+  _BNFTokenizer.DefToken("::=","::=",1);
+  _BNFTokenizer.DefToken("|","\\|",2);
+  _BNFTokenizer.DefToken("id","[^| \t\r\n][^| \t\r\n]*",3);
+  return 0;
+}
+static int x = _INIT_BNFTokenizer();
 // bnf_type methods
 bnf_type::bnf_type(const string &bnf_string) // {{{
 {
@@ -21,16 +31,9 @@ bnf_type::bnf_type(const string &bnf_string) // {{{
   myPre.clear();
   myPost.clear();
   
-  // Create BNF-tokenizer
-  Tokenizer BNFTokenizer;
-  BNFTokenizer.DefToken("","[ \t\r\n][ \t\r\n]*",0); // Whitespace
-  BNFTokenizer.DefToken("::=","::=",1);
-  BNFTokenizer.DefToken("|","\\|",2);
-  BNFTokenizer.DefToken("id","[^| \t\r\n][^| \t\r\n]*",3);
-
-  BNFTokenizer.SetBuffer(bnf_string);
-  token type_name = BNFTokenizer.PopToken();
-  if (type_name.name != "id" || BNFTokenizer.Empty()) // Unexpected token
+  _BNFTokenizer.SetBuffer(bnf_string);
+  token type_name = _BNFTokenizer.PopToken();
+  if (type_name.name != "id" || _BNFTokenizer.Empty()) // Unexpected token
   {
     myName="";
     //cerr << "bnf_type constructor: Bad BNF: " << bnf_string << endl;
@@ -39,7 +42,7 @@ bnf_type::bnf_type(const string &bnf_string) // {{{
   else
     myName=type_name.content;
 
-  token t = BNFTokenizer.PopToken();
+  token t = _BNFTokenizer.PopToken();
   if (t.name != "::=") // Unexpected token
   {
     //cerr << "bnf_type constructor: Bad BNF: " << bnf_string << endl;
@@ -49,9 +52,9 @@ bnf_type::bnf_type(const string &bnf_string) // {{{
   bnf_case c;
   c.args.clear();
   int i=0;
-  while (!BNFTokenizer.Empty()) // Parse definitions
+  while (!_BNFTokenizer.Empty()) // Parse definitions
   {
-    t = BNFTokenizer.PopToken();
+    t = _BNFTokenizer.PopToken();
     if (t.name == "|" || t.name == "_EOF") // End current constructor
     {
       stringstream buf;

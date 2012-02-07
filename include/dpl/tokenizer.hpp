@@ -92,7 +92,7 @@ class Tokenizer // {{{
      */
     void SetBuffer(const std::string &buffer);
 
-    /* PopToken returns the first token from the bufer.
+    /* PopToken returns the first token from the buffer.
      * The tokens are found using the given token definitions.
      * If the name of the first token is "" then the token is ignored,
      * and PopToken returns the next token.
@@ -122,6 +122,7 @@ class Tokenizer // {{{
     BitCode myCompressed;
     int myPos;
     RE_Star *myStar;
+    bool myDirty;
 }; // }}}
 
 }

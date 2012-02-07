@@ -21,6 +21,7 @@ Tokenizer::Tokenizer() // {{{
 {
   myTokenDefs.clear();
   myStar=NULL;
+  myDirty=false;
 } // }}}
 
 Tokenizer::~Tokenizer() // {{{
@@ -84,6 +85,7 @@ void Tokenizer::DefToken(const string &name, const string &exp, int priority) //
   while (index < myTokenDefs.size() && myTokenDefs[index].priority < priority)
     index++;
   myTokenDefs.insert(myTokenDefs.begin()+=index, def);
+  myDirty=true;
 } // }}}
 
 bool Tokenizer::DefToken(string def, int priority) // {{{
@@ -180,9 +182,25 @@ int tokenid(vector<tokendef> &tokens, const RV &value, int start=0, int end=-1) 
 
 void Tokenizer::SetBuffer(const string &buffer) // {{{
 { // Compress buffer using current tokens
-  if (myStar!=NULL)
-    delete myStar;
-  myStar = new RE_Star(build_fullre(myTokenDefs));
+  if (myDirty && myStar!=NULL)
+  { delete myStar;
+    myStar=NULL;
+  }
+  if (myStar==NULL)
+  { myStar = new RE_Star(build_fullre(myTokenDefs));
+    myDirty=false;
+  }
+
+//  NFA nfa(*myStar);
+//  BCOrder_LL order(*myStar);
+//  try
+//  { myCompressed=nfa.Thompson(buffer,order);
+//  }
+//  catch (string s)
+//  {
+//    cout << "Error: " << s << endl;
+//  }
+
   FRCA *frca = FRCA::Create(myStar, buffer.size());
   frca->AddSuffix(buffer,buffer.size());
   int pos=0;
