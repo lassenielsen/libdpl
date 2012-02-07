@@ -55,6 +55,8 @@ include/config.hpp: Makefile
 	echo "#endif" >> include/config.hpp
 
 clean:
+	mkdir -p objects
+	mkdir -p include
 	touch clean~
 	touch packages
 	touch objects/clean.o
@@ -68,6 +70,7 @@ clean:
 	cp Makefile.in Makefile
 
 objects/%.o: source/%.cpp include/*.hpp include/config.hpp
+	mkdir -p objects
 	$(compiler) -c source/$*.cpp $(args) -o objects/$*.o
 
 xmlparser: $(objects) objects/xmlparser.o include/config.hpp
