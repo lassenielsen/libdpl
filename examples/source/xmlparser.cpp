@@ -10,18 +10,23 @@ int main(int argc, char **argv)
   string xmlstring = argv[1];
   Parser parser;
   parser.DefGeneralToken(""," \n\t");
-  parser.DefGeneralToken("id", "a-z");
+  parser.DefToken("id", "[a-z][a-z]*");
   parser.DefToken("string", "\"[a-zA-Z0-9 ]*\"");
   parser.DefKeywordToken("=");
-  parser.DefKeywordToken("<");
-  parser.DefKeywordToken("</");
+  parser.DefKeywordToken("<",2);
+  parser.DefKeywordToken("</",1);
   parser.DefKeywordToken(">");
   parser.DefType("branch ::= < id equals > tree </ id >");
   parser.DefType("equals ::= | id = string equals");
   parser.DefType("tree ::= | branch tree");
   
-  parsed_tree *tree=parser.Parse(xmlstring);
-  cout << tree->ToString() << endl;
-  delete tree;
+  try
+  { parsed_tree *tree=parser.Parse(xmlstring);
+    cout << tree->ToString() << endl;
+    delete tree;
+  }
+  catch (string s)
+  { cout << "Error parsing given xml: " << s << endl;
+  }
   return 0;
 }

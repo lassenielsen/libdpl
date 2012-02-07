@@ -1,4 +1,4 @@
-programs = xmlparser calc test_special showdefs
+programs = xmlparser calc showdefs
 version = 0.0.1-a
 compiler = g++
 ctags = ctags
