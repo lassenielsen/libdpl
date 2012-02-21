@@ -201,10 +201,8 @@ void Tokenizer::SetBuffer(const string &buffer) // {{{
 //    cout << "Error: " << s << endl;
 //  }
 
-  FRCA *frca = FRCA::Create(myStar, buffer.size());
-  frca->AddSuffix(buffer,buffer.size(),false);
-  int pos=0;
-  myCompressed = frca->Compress(pos);
+  FRCA *frca = FRCA::Create(myStar);
+  myCompressed = frca->CompressLL(buffer,0,buffer.size());
   delete frca;
   myPos=0;
 }; // }}}
