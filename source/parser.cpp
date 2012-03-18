@@ -306,6 +306,7 @@ parsed_tree::~parsed_tree() // {{{
 
 // Parser methods
 Parser::Parser() // {{{
+: Tokenizer("ll")
 {
   myTypes.clear();
 }; // }}}

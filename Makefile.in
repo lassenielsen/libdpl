@@ -22,7 +22,7 @@ OS_AUTO = $(shell uname -s)
 
 compiler = g++
 ctags = ctags
-opt = -O3
+opt = -g
 args = -fPIC $(opt) -I./include/
 #OS_MAClibs = 
 #OS_LINUXlibs = -lrcp

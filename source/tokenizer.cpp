@@ -16,8 +16,9 @@ token::token(string name, string content, string pre_content) // {{{
 } // }}}
 
 // Tokenizer methods
-Tokenizer::Tokenizer() // {{{
-: myPos(0)
+Tokenizer::Tokenizer(string mode) // {{{
+: myPos(0),
+  myMode(mode)
 {
   myTokenDefs.clear();
   myStar=NULL;
@@ -202,7 +203,10 @@ void Tokenizer::SetBuffer(const string &buffer) // {{{
 //  }
 
   FRCA *frca = FRCA::Create(myStar);
-  myCompressed = frca->CompressLL(buffer);
+  if (myMode=="ll")
+    myCompressed = frca->CompressLL(buffer);
+  else
+    myCompressed = frca->CompressGL(buffer);
   delete frca;
   myPos=0;
 }; // }}}

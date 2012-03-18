@@ -42,7 +42,7 @@ class tokendef // {{{
 class Tokenizer // {{{
 {
   public:
-    Tokenizer();
+    Tokenizer(std::string mode="gl");
     virtual ~Tokenizer();
 
     /* DefToken is used to define a token type.
@@ -123,6 +123,7 @@ class Tokenizer // {{{
     int myPos;
     RE_Star *myStar;
     bool myDirty;
+    std::string myMode;
 }; // }}}
 
 }
