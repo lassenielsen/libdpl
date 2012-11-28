@@ -203,11 +203,11 @@ void Tokenizer::SetBuffer(const string &buffer) // {{{
 //  }
 
   FRCA *frca = FRCA::Create(myStar);
-  if (myMode=="ll")
-    myCompressed = frca->CompressLL(buffer);
-  else
+//  if (myMode=="ll")
+//    myCompressed = frca->CompressLL(buffer);
+//  else
     myCompressed = frca->CompressGL(buffer);
-  delete frca;
+//  delete frca;
   myPos=0;
 }; // }}}
 
