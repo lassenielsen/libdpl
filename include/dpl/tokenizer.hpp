@@ -115,6 +115,9 @@ class Tokenizer // {{{
      * "_ERROR" is returned.
      */
     bool Empty();
+    /* Clear clears the token definitions as well as the buffer.
+     */
+    void Clear();
 
 
   private:

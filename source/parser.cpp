@@ -13,18 +13,16 @@ bnf_case::bnf_case(const string &name) // {{{
 {
 } // }}}
 
-static bool _tokenizer_ready = false;
-static Tokenizer _BNFTokenizer;
-bool _INIT_BNFTokenizer() // {{{
+bool init_bnf_tokenizer(Tokenizer &tokenizer) // {{{
 {
-  _BNFTokenizer.DefToken("","[ \t\r\n][ \t\r\n]*",0); // Whitespace
-  _BNFTokenizer.DefToken("::=","::=",1);
-  _BNFTokenizer.DefToken("|","\\|",2);
-  _BNFTokenizer.DefToken("id","[^| \t\r\n][^| \t\r\n]*",3);
-  _tokenizer_ready=true;
+  tokenizer.Clear();
+  tokenizer.DefToken("","[ \t\r\n][ \t\r\n]*",0); // Whitespace
+  tokenizer.DefToken("::=","::=",1);
+  tokenizer.DefToken("|","\\|",2);
+  tokenizer.DefToken("id","[^| \t\r\n][^| \t\r\n]*",3);
   return true;
 } // }}}
-bool _tokenizer_init=_INIT_BNFTokenizer();
+
 // bnf_type methods
 bnf_type::bnf_type(const string &bnf_string) // {{{
 {
@@ -34,13 +32,14 @@ bnf_type::bnf_type(const string &bnf_string) // {{{
   myPre.clear();
   myPost.clear();
 
-  while (!_tokenizer_ready)
-  { usleep(1000);
-    cout << "Waiting for bnf initialization" << endl;
-  }
-  _BNFTokenizer.SetBuffer(bnf_string);
-  token type_name = _BNFTokenizer.PopToken();
-  if (type_name.name != "id" || _BNFTokenizer.Empty()) // Unexpected token
+  if (bnf_string=="")
+    return; // Create empty bnf_type
+
+  Tokenizer bnf_tokenizer;
+  init_bnf_tokenizer(bnf_tokenizer);
+  bnf_tokenizer.SetBuffer(bnf_string);
+  token type_name = bnf_tokenizer.PopToken();
+  if (type_name.name != "id" || bnf_tokenizer.Empty()) // Unexpected token
   {
     myName="";
     cerr << "bnf_type constructor: Bad BNF: " << bnf_string << endl;
@@ -49,7 +48,7 @@ bnf_type::bnf_type(const string &bnf_string) // {{{
   else
     myName=type_name.content;
 
-  token t = _BNFTokenizer.PopToken();
+  token t = bnf_tokenizer.PopToken();
   if (t.name != "::=") // Unexpected token
   {
     cerr << "bnf_type constructor: Bad BNF: " << bnf_string << endl;
@@ -59,9 +58,9 @@ bnf_type::bnf_type(const string &bnf_string) // {{{
   bnf_case c;
   c.args.clear();
   int i=0;
-  while (!_BNFTokenizer.Empty()) // Parse definitions
+  while (!bnf_tokenizer.Empty()) // Parse definitions
   {
-    t = _BNFTokenizer.PopToken();
+    t = bnf_tokenizer.PopToken();
     if (t.name == "|" || t.name == "_EOF") // End current constructor
     {
       stringstream buf;
@@ -340,15 +339,15 @@ Parser::Parser(const string &filename) // {{{
     else if (line.find("::=") != string::npos) // type definition
     {
       if (!DefType(line)) // Bad BNF
-        cout << "Bad BNF: " << line << endl;
+        cerr << "Bad BNF: " << line << endl;
     }
     else if (line.find(":=") != string::npos) // token definition
     {
       if (!DefToken(line)) // Bad Token def
-        cout << "Bad token def: " << line << endl;
+        cerr << "Bad token def: " << line << endl;
     }
     else
-      cout << "Ignoring line: " << line << endl;
+      cerr << "Ignoring line: " << line << endl;
   }
 }; // }}}
 
@@ -376,22 +375,15 @@ bool Parser::DefType(const string &bnf) // {{{
   // Check for any previous definition
   map<string,bnf_type>::iterator def = myTypes.find(t.Name());
   if (def!=myTypes.end()) // There was a previous definition
-    if (def->second.Empty()) // Remove empty definition
-      myTypes.erase(def); // Abort because of nonempty previous definition
-    else
-      return false;
-
-  // Insert new type
-  myTypes[t.Name()]=t;
+    def->second=t; // Overwrite definition
+  else // No existing definition
+    myTypes.insert(pair<string,bnf_type>(t.Name(),t)); // Insert new type
   return true;
 } // }}}
 
 bnf_type &Parser::GetType(const std::string &name) // {{{
 {
-  bnf_type &t = myTypes[name];
-  if (t.Name() != name) // Fix name of newly constructed bnf_type
-    t.SetName(name);
-  return t;
+  return myTypes[name];
 } // }}}
 
 bool Parser::IsType(const std::string &name) // {{{

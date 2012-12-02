@@ -283,3 +283,13 @@ bool Tokenizer::Empty() // {{{
 {
   return myCompressed.GetLength()<=myPos;
 } // }}}
+
+void Tokenizer::Clear() // {{{
+{ if (myStar!=NULL)
+    delete myStar;
+  myStar = NULL;
+  myTokenDefs.clear();
+  myCompressed=BitCode();
+  myPos=0;
+  myDirty=false;
+} // }}}
