@@ -1,5 +1,5 @@
 INTRODUCTION:
-This is the DPL(Dynamic Parser Library), also called DynParser.
+This is the DPL (Dynamic Parser Library), also called DynParser.
 DPL is a library written for C++, to give a simple API for programming with
 formal languages. Simplicity is obtained by working directly with BNFs
 (Baccus-Nauer Form, also called Baccus Normal Form), and by not using a

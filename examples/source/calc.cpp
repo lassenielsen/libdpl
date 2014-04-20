@@ -1,6 +1,6 @@
 #include <iostream>
 #include <sstream>
-#include <dpl/parser.hpp>
+#include <dpl/symparser.hpp>
 using namespace dpl;
 using namespace std;
 
@@ -13,7 +13,7 @@ int a2i(const string &a) // {{{
   return i;
 } // }}}
 
-int calc(const parsed_tree *tree) // {{{
+int calc(const parsetree *tree) // {{{
 { // Do the actual calculation
   if (tree->type_name == "number") return a2i(tree->root.content);
   if (tree->type_name == "eqnm" && tree->case_name == "case1") return a2i(tree->content[0]->root.content);
@@ -37,7 +37,7 @@ int main(int argc, char **argv) // {{{
   }
 
   string exp = argv[1]; // Copy argument
-  Parser parser; // Define parser
+  SymParser parser; // Define parser
   parser.DefToken("","[ \t\r\n][ \t\r\n]*");
   parser.DefGeneralToken("number", "0123456789");
   parser.DefKeywordToken("(");
@@ -51,7 +51,7 @@ int main(int argc, char **argv) // {{{
   parser.DefType("eqn ::= eqn + eqn | eqn - eqn | eqnm");
   parser.DefType("eqnm ::= number | ( eqn ) | eqnm * eqnm | eqnm / eqnm | ~ eqnm");
   
-  parsed_tree *tree=parser.Parse(exp); // Parse argument
+  parsetree *tree=parser.Parse(exp); // Parse argument
   // Calculate and print result
   cout << parser.Unparse(*tree) << " = " << calc(tree) << endl;
   // Clean up

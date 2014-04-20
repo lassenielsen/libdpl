@@ -23,13 +23,17 @@ OS_AUTO = $(shell uname -s)
 compiler = g++
 ctags = ctags
 opt = -g
-args = -fPIC $(opt) -I./include/
+args = -fPIC $(opt) -I./include/ -std=c++0x
 #OS_MAClibs = 
 #OS_LINUXlibs = -lrcp
 
 library_objects = \
   objects/tokenizer.o \
+  objects/parsetree.o \
+  objects/bnf.o \
   objects/parser.o \
+  objects/symbnf.o \
+  objects/symparser.o
 
 default:
 	@echo "Use make config, make build, sudo make install, make clean and if you don't like it sudo make uninstall."

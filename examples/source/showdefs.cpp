@@ -1,24 +1,24 @@
 #include <iostream>
-#include <dpl/parser.hpp>
+#include <dpl/symparser.hpp>
 
 using namespace dpl;
 using namespace std;
 
-class Printer : public Parser
+class Printer : public SymParser // {{{
 {
   public:
-    Printer(const string &filename) : Parser(filename) {}
-    ~Printer() { }
+    Printer(const string &filename) : SymParser(filename) { }
+    virtual ~Printer() { }
 
     void PrintDetails() // Print meta information about types
     {
       FixAll();
-      for (map<string,bnf_type>::iterator it=myTypes.begin(); it!=myTypes.end(); ++it)
+      for (unordered_map<string,SymBnf>::const_iterator it=myTypes.begin(); it!=myTypes.end(); ++it)
       {
         if (!IsType(it->first))
           continue;
-        bnf_type &t = it->second;
-        cout << "Type: " << t.Name() << endl;
+        const SymBnf &t = it->second;
+        cout << "Type: " << t.GetName() << endl;
         cout << "\tNullable: " << t.Nullable() << endl;
         cout << "\tFirst: ";
         for (set<string>::const_iterator it=t.First().begin(); it!=t.First().end(); ++it)
@@ -37,18 +37,19 @@ class Printer : public Parser
           cout << *it << " ";
         cout << endl;
         cout << "\tCases: " << endl;
-        for (vector<bnf_case>::const_iterator it=t.Cases().begin(); it!=t.Cases().end(); ++it)
-        { cout << "\t\t" << it->name << " ::=";
-          for (vector<string>::const_iterator arg=it->args.begin(); arg!=it->args.end(); ++arg)
+        vector<string> case_names = t.CaseNames();
+        for (vector<string>::const_iterator it=case_names.begin(); it!=case_names.end(); ++it)
+        { cout << "\t\t" << *it << " ::=";
+          for (vector<string>::const_iterator arg=t.Case(*it).begin(); arg!=t.Case(*it).end(); ++arg)
             cout << " " << *arg;
           cout << endl;
         }
 
       }
     }
-};
+}; // }}}
 
-int main(int argc, char **argv)
+int main(int argc, char **argv) // {{{
 {
   if (argc<2)
   {
@@ -59,9 +60,9 @@ int main(int argc, char **argv)
   printer.PrintDetails();
   if (argc>2)
   {
-    parsed_tree *tree = printer.Parse(argv[2]);
+    parsetree *tree = printer.Parse(argv[2]);
     cout << tree->ToString() << endl;
     delete tree;
   }
   return 0;
-}
+} // }}}

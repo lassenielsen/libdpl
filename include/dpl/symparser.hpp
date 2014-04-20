@@ -1,44 +1,74 @@
-#ifndef SYMPARSER_HPP
-#define SYMPARSER_HPP
+#ifndef DPL_SYMPARSER_HPP
+#define DPL_SYMPARSER_HPP
 
-class sym_bnf_type : public bnf_type
+#include <unordered_map>
+#include <dpl/symbnf.hpp>
+#include <dpl/parser.hpp>
+
+namespace dpl
 {
-  sym_bnf_type(const std::string &bnf_string="");
-  virtual ~sym_bnf_type();
 
-    const std::set<std::string> &First();
-    const std::set<std::string> &Last();
-    const std::set<std::string> &Pre();
-    const std::set<std::string> &Post();
+/*! Parser represents a tree structure where each node holds a token.
+ *  This is the type returned by the Parse method in the Parser class.
+ *  The tree represents elements of the given abstract syntax.
+ */
+class SymParser : public Parser // {{{
+{
+  public:
+    SymParser();
+    SymParser(const std::string &filename);
+    virtual ~SymParser();
 
-    bool HasFirst(const std::string &token);
-    bool HasLast(const std::string &token);
-    bool HasPre(const std::string &token);
-    bool HasPost(const std::string &token);
+    virtual parsetree *Parse(const std::string &buffer);
 
-    bool AddFirst(const std::string &token);
-    bool AddFirst(const std::set<std::string> &source);
-    bool AddLast(const std::string &token);
-    bool AddLast(const std::set<std::string> &source);
-    bool AddPre(const std::string &token);
-    bool AddPre(const std::set<std::string> &source);
-    bool AddPost(const std::string &token);
-    bool AddPost(const std::set<std::string> &source);
+  protected:
+    // Accessor
+    SymBnf &GetType(const std::string &name);
+    bool IsType(const std::string &name);
 
-    bool Nullable();
-    void SetNullable(bool value=true);
-    parsed_tree VoidRep();
-    void SetVoidRep(const parsed_tree &rep);
+    /*! FixNullable finds the least fixpoint of the
+        nullable property.
+     */
+    void FixNullable();
+    /*! FixFirst finds the least fixpoint of the
+        first property.
+     */
+    void FixFirst();
+    /*! FixLast finds the least fixpoint of the
+        last property.
+     */
+    void FixLast();
+    /*! FixPre finds the least fixpoint of the
+        pre property.
+     */
+    void FixPre();
+    /*! FixPost finds the least fixpoint of the
+        post property.
+     */
+    void FixPost();
+    /*! FixAll finds the least fixpoint of the semantical properties
+        Nullable
+        First
+        Last
+        Pre
+        Post.
+     */
+    void FixAll();
 
+    /*! Internal function to search for cases that can be applied to the end of a list of tokens
+     */ 
+    bool make_reduction(std::vector<parsetree*> &peephole, const std::string &case_name, std::vector<std::string> &case_def, const SymBnf &this_type, std::vector<parsetree*> &buffer);
 
-  private:
-    // Calculated info
-    std::set<std::string> myFirst;
-    std::set<std::string> myLast;
-    std::set<std::string> myPre;
-    std::set<std::string> myPost;
-    bool myNullable;
-    parsed_tree myVoidRep;
+    virtual void AddCase(const std::string &type_name,
+                         const std::string &case_name,
+                         const std::vector<std::string> &c);
+    virtual void AddType(const std::string &type_name,
+                         const Bnf &t);
+    
+    //! Map from type name to definition
+    std::unordered_map<std::string,SymBnf> myTypes;
 };
+
+}
 
 #endif
