@@ -57,42 +57,14 @@ bool SymBnf::AddLast(const set<string> &source) // {{{
   return updated;
 } // }}}
 
-bool SymBnf::AddPre(const string &token) // {{{
-{
-  if (myPre.find(token) == myPre.end())
+bool SymBnf::AddFrame(const string &pre, const string &post) // {{{
+{ pair<string,string> frame = pair<string,string>(pre,post);
+  if (myFrame.find(frame) == myFrame.end())
   {
-    myPre.insert(token);
+    myFrame.insert(token);
     return true;
   }
   return false;
-} // }}}
-
-bool SymBnf::AddPre(const set<string> &source) // {{{
-{
-  bool updated=false;
-  for (set<string>::iterator it = source.begin(); it != source.end(); ++it)
-    if (AddPre(*it))
-      return updated=true;
-  return updated;
-} // }}}
-
-bool SymBnf::AddPost(const string &token) // {{{
-{
-  if (myPost.find(token) == myPost.end())
-  {
-    myPost.insert(token);
-    return true;
-  }
-  return false;
-} // }}}
-
-bool SymBnf::AddPost(const set<string> &source) // {{{
-{
-  bool updated=false;
-  for (set<string>::iterator it = source.begin(); it != source.end(); ++it)
-    if (AddPost(*it))
-      updated=true;
-  return updated;
 } // }}}
 
 void SymBnf::SetNullable(bool value) // {{{

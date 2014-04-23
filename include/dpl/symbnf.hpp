@@ -27,10 +27,7 @@ class SymBnf : public Bnf
     bool AddFirst(const std::set<std::string> &source);
     bool AddLast(const std::string &token);
     bool AddLast(const std::set<std::string> &source);
-    bool AddPre(const std::string &token);
-    bool AddPre(const std::set<std::string> &source);
-    bool AddPost(const std::string &token);
-    bool AddPost(const std::set<std::string> &source);
+    bool AddFrame(const std::string &pre, const std::string &post);
 
     bool Nullable() const {return myNullable;}
     void SetNullable(bool value=true);
@@ -41,8 +38,7 @@ class SymBnf : public Bnf
     // Calculated info
     std::set<std::string> myFirst;
     std::set<std::string> myLast;
-    std::set<std::string> myPre;
-    std::set<std::string> myPost;
+    std::set<std::pair<std::string,std::string> > myFrame;
     bool myNullable;
     parsetree myVoidRep;
 };
