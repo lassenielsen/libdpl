@@ -61,7 +61,9 @@ bool SymBnf::AddFrame(const string &pre, const string &post) // {{{
 { pair<string,string> frame = pair<string,string>(pre,post);
   if (myFrame.find(frame) == myFrame.end())
   {
-    myFrame.insert(token);
+    myFrame.insert(frame);
+    myPre.insert(pre);
+    myPost.insert(post);
     return true;
   }
   return false;

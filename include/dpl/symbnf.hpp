@@ -15,11 +15,11 @@ class SymBnf : public Bnf
 
     const std::set<std::string> &First() const {return myFirst;}
     const std::set<std::string> &Last() const {return myLast;}
-    const std::set<std::string> &Pre() const {return myPre;}
-    const std::set<std::string> &Post() const {return myPost;}
+    const std::set<std::pair<std::string,std::string> > &Frame() const {return myFrame;}
 
     bool HasFirst(const std::string &token) const {return (myFirst.find(token) != myFirst.end());}
     bool HasLast(const std::string &token) const {return (myLast.find(token) != myLast.end());}
+    bool HasFrame(const std::string &pre, const std::string &post) const {return (myFrame.find(std::pair<std::string,std::string>(pre,post)) != myFrame.end());}
     bool HasPre(const std::string &token) const {return (myPre.find(token) != myPre.end());}
     bool HasPost(const std::string &token) const {return (myPost.find(token) != myPost.end());}
 
@@ -39,6 +39,8 @@ class SymBnf : public Bnf
     std::set<std::string> myFirst;
     std::set<std::string> myLast;
     std::set<std::pair<std::string,std::string> > myFrame;
+    std::set<std::string> myPre;
+    std::set<std::string> myPost;
     bool myNullable;
     parsetree myVoidRep;
 };

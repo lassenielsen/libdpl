@@ -74,7 +74,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
         reduced = false;
         for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin();it_type!=myTypes.end() && !reduced;++it_type)
         {
-          if (it_type->second.Post().find(post_token.name) != it_type->second.Post().end()) // post_token in type.Post()
+          if (it_type->second.HasPost(post_token.name)) // Preliminary test
           {
             vector<string> cases=it_type->second.CaseNames();
             for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end() && !reduced; ++case_name)
@@ -83,7 +83,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
                 vector<parsetree*> buffer;
                 buffer.clear();
                 vector<string> case_cpy(it_type->second.Case(*case_name));
-                if (make_reduction(peephole, *case_name, case_cpy, it_type->second, buffer)) // do reduction if possible
+                if (make_reduction(peephole, *case_name, case_cpy, it_type->second, buffer, post_token.name)) // do reduction if possible
                   reduced=true;
               }
           }
@@ -240,68 +240,100 @@ void set_include(const set<string> &source, set<string> &dest) // {{{
     dest.insert(*it);
 } // }}}
 
-void SymParser::FixPre() // {{{
+bool SymParser::FramePostRec(const std::string &pre, SymBnf &t, const std::string &post) // {{{
+{ bool updated=false;
+  if (t.AddFrame(pre,post))
+    updated=true;
+  if (IsType(post) && updated)
+  { SymBnf &t_post = GetType(post);
+    for (vector<string>::const_iterator it_first=t_post.First().begin(); it_first!=t_post.First().end(); ++it_first)
+      FramePostRec(pre,t,*it_first);
+  }
+  return updated;
+} // }}}
+
+bool SymParser::FrameAllPosts(const std::string &pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator end, const vector<string> &follow) // {{{
+{
+  bool updated=false;
+  for (;;++post) // Iterate over posts until break
+  {
+    if (post==end) // Add posts from follow and break
+    { for (vector<string>::const_iterator it_follow=follow.begin(); it_follow!=follow.end(); ++it_follow)
+        if (FramePostRec(pre,t,*it_follow))
+          updated=true;
+      break;
+    }
+    else if (t.AddFrame(pre,*post))
+      updated=true;
+    if (!(IsType(*post) && GetType(*post).Nullable()))
+      break;
+  }
+  return updated;
+} // }}}
+
+bool SymParser::FramePreRec(const std::string &pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator end, const vector<string> &follow) // {{{
+{ bool updated=false;
+  if (FrameAllPosts(pre,t,post,end,follow))
+    updated=true;
+  if (IsType(pre) && updated)
+  { SymBnf &t_pre = GetType(pre);
+    for (vector<string>::const_iterator it_last=t_pre.Last().begin(); it_last!=t_pre.Last().end(); ++it_last)
+      FramePreRec(*it_last,t,post,end,follow);
+  }
+  return updated;
+} // }}}
+
+bool SymParser::FrameAllPres(vector<string>::const_iterator pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator begin, vector<string>::const_iterator end, const vector<string> &precede, const vector<string> &follow) // {{{
+{
+  bool updated=false;
+  for (;;--pre) // Iterate over posts until break
+  {
+    if (FramePreRec(*pre,t,post,end,follow))
+      updated=true;
+    if (!(IsType(*pre) && GetType(*pre).Nullable()))
+      break;
+    if (pre==begin) // Add posts from follow and break
+    { for (vector<string>::const_iterator it_precede=precede.begin(); it_precede!=precede.end(); ++it_precede)
+        if (FramePreRec(*it_precede,t,post,end,follow))
+          updated=true;
+      break;
+    }
+  }
+  return updated;
+} // }}}
+
+void SymParser::FixFrame() // {{{
 {
   bool updated=true;
   while(updated)
   {
     updated=false;
-    for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
+    for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type) // Iterate over types
     {
       vector<string> cases=it_type->second.CaseNames();
-      for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name)
+      for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name) // Iterate over cases
       {
-        set<string> preset;
-        preset.clear();
-        set_include(it_type->second.Pre(),preset);
         for (vector<string>::const_iterator it_arg=it_type->second.Case(*case_name).begin(); it_arg!=it_type->second.Case(*case_name).end(); ++it_arg)
         {
           if (IsType(*it_arg))
           {
             SymBnf &t = GetType(*it_arg);
-            if (t.AddPre(preset))
-              updated=true;
-            if (!t.Nullable())
-              preset.clear();
-            set_include(t.Last(),preset); // include Last
-            preset.insert(*it_arg); // include type
-          }
-          else
-          {
-            preset.clear();
-            preset.insert(*it_arg);
-          }
-        }
-      }
-    }
-  }
-} // }}}
-
-void SymParser::FixPost() // {{{
-{
-  bool updated=true;
-  while(updated)
-  {
-    updated=false;
-    for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
-    {
-      vector<string> cases=it_type->second.CaseNames();
-      for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name)
-      {
-        set<string> postset;
-        postset.clear();
-        set_include(it_type->second.Post(),postset);
-        for (vector<string>::const_reverse_iterator it_arg=it_type->second.Case(*case_name).rbegin(); it_arg!=it_type->second.Case(*case_name).rend(); ++it_arg)
-        {
-          if (IsType(*it_arg))
-          {
-            SymBnf &t = GetType(*it_arg);
-            if (t.AddPost(postset))
-              updated=true;
-            if (!t.Nullable())
-              postset.clear();
-            set_include(t.First(),postset); // include Last
-            postset.insert(*it_arg); // include type
+            vector<string>::const_iterator it_pre it_arg;
+            while (true)
+            { // Iterate over preceding items
+              if (it_pre==it_type->second.Case(*case_name).begin())
+              --it_pre;
+              if (IsType(*it_pre))
+              { SymBnf &t_pre = GetType(*it_pre);
+                if (FrameAllPosts(t_pre.GetName(),t,it_arg+1,it_type->second.Case(*case_name).end()))
+                  updated=true;
+              }
+              else
+              { if (FrameAllPosts(*it_pre,t,it_arg+1,it_type->second.Case(*case_name).end()))
+                  updated=true;
+                break;
+              }
+            }
           }
           else
           {
@@ -323,11 +355,12 @@ void SymParser::FixAll() // {{{
   FixPost();
 } // }}}
 
-bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_name, vector<string> &case_def, const SymBnf &this_type, vector<parsetree*> &buffer) // {{{
+bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_name, vector<string> &case_def, const SymBnf &this_type, vector<parsetree*> &buffer, string post) // {{{
 {
-  if (case_def.size() ==0) // just check for Pre
+  if (case_def.size() ==0) // just check for Frame or Pre
   {
-    if (peephole.size() == 0 || this_type.HasPre(peephole.back()->type_name))
+    string pre=peephole.back()->type_name;
+    if (peephole.size() == 0 || (post=="_EOF" && this_type.HasPre(pre)) || (post!="_EOF" && this_type.HasFrame(pre,post)))
     {
       vector<parsetree*> revbuffer(buffer.rbegin(),buffer.rend());
       buffer.clear();
@@ -349,7 +382,7 @@ bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_
   if (arg == peep->type_name) // Last elements match
   {
     buffer.push_back(peep);
-    if (make_reduction(peephole, case_name, case_def, this_type, buffer))
+    if (make_reduction(peephole, case_name, case_def, this_type, buffer, post))
     {
       buffer.pop_back();
       case_def.push_back(arg);
@@ -362,7 +395,7 @@ bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_
   if (IsType(arg) && GetType(arg).Nullable())
   {
     buffer.push_back(new parsetree(GetType(arg).VoidRep()));
-    if (make_reduction(peephole, case_name, case_def, this_type, buffer))
+    if (make_reduction(peephole, case_name, case_def, this_type, buffer, post))
     {
       // FIXME: delete buffer.back(); ???
       buffer.pop_back();

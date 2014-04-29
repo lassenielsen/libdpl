@@ -38,14 +38,15 @@ class SymParser : public Parser // {{{
         last property.
      */
     void FixLast();
-    /*! FixPre finds the least fixpoint of the
-        pre property.
+    /*! FixFrame finds the least fixpoint of the
+        (pre,post) frame property.
      */
-    void FixPre();
-    /*! FixPost finds the least fixpoint of the
-        post property.
-     */
-    void FixPost();
+    void FixFrame();
+    bool FramePostRec(const std::string &pre, SymBnf &t, const std::string &post);
+    bool FrameAllPosts(const std::string &pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator end, const std::vector<std::string> &follow);
+    bool SymParser::FramePreRec(const std::string &pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator end, const std::vector<std::string> &follow);
+    bool FrameAllPres(std::vector<std::string>::const_iterator pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator begin, std::vector<std::string>::const_iterator end, const std::vector<std::string> &precede, const std::vector<std::string> &follow);
+
     /*! FixAll finds the least fixpoint of the semantical properties
         Nullable
         First
@@ -57,7 +58,7 @@ class SymParser : public Parser // {{{
 
     /*! Internal function to search for cases that can be applied to the end of a list of tokens
      */ 
-    bool make_reduction(std::vector<parsetree*> &peephole, const std::string &case_name, std::vector<std::string> &case_def, const SymBnf &this_type, std::vector<parsetree*> &buffer);
+    bool make_reduction(std::vector<parsetree*> &peephole, const std::string &case_name, std::vector<std::string> &case_def, const SymBnf &this_type, std::vector<parsetree*> &buffer, std::string post="_EOF");
 
     virtual void AddCase(const std::string &type_name,
                          const std::string &case_name,
