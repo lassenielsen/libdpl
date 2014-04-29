@@ -16,6 +16,8 @@ class SymBnf : public Bnf
     const std::set<std::string> &First() const {return myFirst;}
     const std::set<std::string> &Last() const {return myLast;}
     const std::set<std::pair<std::string,std::string> > &Frame() const {return myFrame;}
+    const std::set<std::string> &Pre() const {return myPre;}
+    const std::set<std::string> &Post() const {return myPost;}
 
     bool HasFirst(const std::string &token) const {return (myFirst.find(token) != myFirst.end());}
     bool HasLast(const std::string &token) const {return (myLast.find(token) != myLast.end());}

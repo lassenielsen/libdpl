@@ -246,19 +246,19 @@ bool SymParser::FramePostRec(const std::string &pre, SymBnf &t, const std::strin
     updated=true;
   if (IsType(post) && updated)
   { SymBnf &t_post = GetType(post);
-    for (vector<string>::const_iterator it_first=t_post.First().begin(); it_first!=t_post.First().end(); ++it_first)
+    for (set<string>::const_iterator it_first=t_post.First().begin(); it_first!=t_post.First().end(); ++it_first)
       FramePostRec(pre,t,*it_first);
   }
   return updated;
 } // }}}
 
-bool SymParser::FrameAllPosts(const std::string &pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator end, const vector<string> &follow) // {{{
+bool SymParser::FrameAllPosts(const std::string &pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator end, const set<string> &follow) // {{{
 {
   bool updated=false;
   for (;;++post) // Iterate over posts until break
   {
     if (post==end) // Add posts from follow and break
-    { for (vector<string>::const_iterator it_follow=follow.begin(); it_follow!=follow.end(); ++it_follow)
+    { for (set<string>::const_iterator it_follow=follow.begin(); it_follow!=follow.end(); ++it_follow)
         if (FramePostRec(pre,t,*it_follow))
           updated=true;
       break;
@@ -271,19 +271,19 @@ bool SymParser::FrameAllPosts(const std::string &pre, SymBnf &t, vector<string>:
   return updated;
 } // }}}
 
-bool SymParser::FramePreRec(const std::string &pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator end, const vector<string> &follow) // {{{
+bool SymParser::FramePreRec(const std::string &pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator end, const set<string> &follow) // {{{
 { bool updated=false;
   if (FrameAllPosts(pre,t,post,end,follow))
     updated=true;
   if (IsType(pre) && updated)
   { SymBnf &t_pre = GetType(pre);
-    for (vector<string>::const_iterator it_last=t_pre.Last().begin(); it_last!=t_pre.Last().end(); ++it_last)
+    for (set<string>::const_iterator it_last=t_pre.Last().begin(); it_last!=t_pre.Last().end(); ++it_last)
       FramePreRec(*it_last,t,post,end,follow);
   }
   return updated;
 } // }}}
 
-bool SymParser::FrameAllPres(vector<string>::const_iterator pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator begin, vector<string>::const_iterator end, const vector<string> &precede, const vector<string> &follow) // {{{
+bool SymParser::FrameAllPres(vector<string>::const_iterator pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator begin, vector<string>::const_iterator end, const set<string> &precede, const set<string> &follow) // {{{
 {
   bool updated=false;
   for (;;--pre) // Iterate over posts until break
@@ -293,7 +293,7 @@ bool SymParser::FrameAllPres(vector<string>::const_iterator pre, SymBnf &t, vect
     if (!(IsType(*pre) && GetType(*pre).Nullable()))
       break;
     if (pre==begin) // Add posts from follow and break
-    { for (vector<string>::const_iterator it_precede=precede.begin(); it_precede!=precede.end(); ++it_precede)
+    { for (set<string>::const_iterator it_precede=precede.begin(); it_precede!=precede.end(); ++it_precede)
         if (FramePreRec(*it_precede,t,post,end,follow))
           updated=true;
       break;
@@ -318,27 +318,13 @@ void SymParser::FixFrame() // {{{
           if (IsType(*it_arg))
           {
             SymBnf &t = GetType(*it_arg);
-            vector<string>::const_iterator it_pre it_arg;
-            while (true)
-            { // Iterate over preceding items
-              if (it_pre==it_type->second.Case(*case_name).begin())
+            vector<string>::const_iterator it_pre=it_arg;
+            if (it_pre!=it_type->second.Case(*case_name).begin())
               --it_pre;
-              if (IsType(*it_pre))
-              { SymBnf &t_pre = GetType(*it_pre);
-                if (FrameAllPosts(t_pre.GetName(),t,it_arg+1,it_type->second.Case(*case_name).end()))
-                  updated=true;
-              }
-              else
-              { if (FrameAllPosts(*it_pre,t,it_arg+1,it_type->second.Case(*case_name).end()))
-                  updated=true;
-                break;
-              }
-            }
-          }
-          else
-          {
-            postset.clear();
-            postset.insert(*it_arg);
+            vector<string>::const_iterator it_post=it_arg;
+            ++ it_post;
+            if (FrameAllPres(it_pre, t, it_post, it_type->second.Case(*case_name).begin(), it_type->second.Case(*case_name).end(), it_type->second.Pre(), it_type->second.Post()))
+              updated=true;
           }
         }
       }
@@ -351,8 +337,7 @@ void SymParser::FixAll() // {{{
   FixNullable();
   FixFirst();
   FixLast();
-  FixPre();
-  FixPost();
+  FixFrame();
 } // }}}
 
 bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_name, vector<string> &case_def, const SymBnf &this_type, vector<parsetree*> &buffer, string post) // {{{

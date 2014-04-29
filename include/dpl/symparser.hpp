@@ -43,9 +43,9 @@ class SymParser : public Parser // {{{
      */
     void FixFrame();
     bool FramePostRec(const std::string &pre, SymBnf &t, const std::string &post);
-    bool FrameAllPosts(const std::string &pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator end, const std::vector<std::string> &follow);
-    bool SymParser::FramePreRec(const std::string &pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator end, const std::vector<std::string> &follow);
-    bool FrameAllPres(std::vector<std::string>::const_iterator pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator begin, std::vector<std::string>::const_iterator end, const std::vector<std::string> &precede, const std::vector<std::string> &follow);
+    bool FrameAllPosts(const std::string &pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator end, const std::set<std::string> &follow);
+    bool FramePreRec(const std::string &pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator end, const std::set<std::string> &follow);
+    bool FrameAllPres(std::vector<std::string>::const_iterator pre, SymBnf &t, std::vector<std::string>::const_iterator post, std::vector<std::string>::const_iterator begin, std::vector<std::string>::const_iterator end, const std::set<std::string> &precede, const std::set<std::string> &follow);
 
     /*! FixAll finds the least fixpoint of the semantical properties
         Nullable
