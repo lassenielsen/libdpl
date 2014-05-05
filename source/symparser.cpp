@@ -78,6 +78,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
           {
             vector<string> cases=it_type->second.CaseNames();
             for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end() && !reduced; ++case_name)
+            {
               if (it_type->second.Case(*case_name).size() > 0) // do not use empty cases
               {
                 vector<parsetree*> buffer;
@@ -86,6 +87,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
                 if (make_reduction(peephole, *case_name, case_cpy, it_type->second, buffer, post_token.name)) // do reduction if possible
                   reduced=true;
               }
+            }
           }
         }
       }
@@ -263,7 +265,7 @@ bool SymParser::FrameAllPosts(const std::string &pre, SymBnf &t, vector<string>:
           updated=true;
       break;
     }
-    else if (t.AddFrame(pre,*post))
+    else if (FramePostRec(pre,t,*post))
       updated=true;
     if (!(IsType(*post) && GetType(*post).Nullable()))
       break;
@@ -286,18 +288,19 @@ bool SymParser::FramePreRec(const std::string &pre, SymBnf &t, vector<string>::c
 bool SymParser::FrameAllPres(vector<string>::const_iterator pre, SymBnf &t, vector<string>::const_iterator post, vector<string>::const_iterator begin, vector<string>::const_iterator end, const set<string> &precede, const set<string> &follow) // {{{
 {
   bool updated=false;
-  for (;;--pre) // Iterate over posts until break
+  while (true) // Iterate over posts until break
   {
-    if (FramePreRec(*pre,t,post,end,follow))
-      updated=true;
-    if (!(IsType(*pre) && GetType(*pre).Nullable()))
-      break;
     if (pre==begin) // Add posts from follow and break
     { for (set<string>::const_iterator it_precede=precede.begin(); it_precede!=precede.end(); ++it_precede)
         if (FramePreRec(*it_precede,t,post,end,follow))
           updated=true;
       break;
     }
+    --pre;
+    if (FramePreRec(*pre,t,post,end,follow))
+      updated=true;
+    if (!(IsType(*pre) && GetType(*pre).Nullable()))
+      break;
   }
   return updated;
 } // }}}
@@ -319,8 +322,8 @@ void SymParser::FixFrame() // {{{
           {
             SymBnf &t = GetType(*it_arg);
             vector<string>::const_iterator it_pre=it_arg;
-            if (it_pre!=it_type->second.Case(*case_name).begin())
-              --it_pre;
+//            if (it_pre!=it_type->second.Case(*case_name).begin())
+//              --it_pre;
             vector<string>::const_iterator it_post=it_arg;
             ++ it_post;
             if (FrameAllPres(it_pre, t, it_post, it_type->second.Case(*case_name).begin(), it_type->second.Case(*case_name).end(), it_type->second.Pre(), it_type->second.Post()))
@@ -342,10 +345,18 @@ void SymParser::FixAll() // {{{
 
 bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_name, vector<string> &case_def, const SymBnf &this_type, vector<parsetree*> &buffer, string post) // {{{
 {
-  if (case_def.size() ==0) // just check for Frame or Pre
+  if (case_def.size() == 0) // just check for Frame or Pre
   {
-    string pre=peephole.back()->type_name;
-    if (peephole.size() == 0 || (post=="_EOF" && this_type.HasPre(pre)) || (post!="_EOF" && this_type.HasFrame(pre,post)))
+    bool pre_test=peephole.size() == 0;
+    bool post_test=post=="_EOF";
+    string pre="_BOF";
+    if (!pre_test)
+      pre=peephole.back()->type_name;
+
+    if ((pre_test && post_test) ||
+        (pre_test && !post_test && this_type.HasPost(post)) ||
+        (!pre_test && post_test && this_type.HasPre(pre)) ||
+        (!pre_test && !post_test && this_type.HasFrame(pre,post)))
     {
       vector<parsetree*> revbuffer(buffer.rbegin(),buffer.rend());
       buffer.clear();

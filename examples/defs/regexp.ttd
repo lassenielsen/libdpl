@@ -1,7 +1,7 @@
-# A small ttd (Token- and Type-Definitions) file defining a sequence of pairs
+# A small ttd (Token- and Type-Definitions) file defining the mathematical regular expression notation
 
 # TOKENS
-lit := "[^01()+*\\]|[\\]0|[\\]1|[\\]\(|[\\]\)|[\\]\+|[\\]\*|[\\][\\]"
+lit := "[^01()+*\\]+\\[^]"
 0   := "0"
 1   := "1"
 (   := "\("

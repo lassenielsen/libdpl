@@ -28,6 +28,10 @@ class Printer : public SymParser // {{{
         for (set<string>::const_iterator it=t.Last().begin(); it!=t.Last().end(); ++it)
           cout << *it << " ";
         cout << endl;
+        cout << "\tFrame: ";
+        for (set<pair<string,string> >::const_iterator it=t.Frame().begin(); it!=t.Frame().end(); ++it)
+          cout << "(" << it->first << "," << it->second << ")" << " ";
+        cout << endl;
         cout << "\tPre: ";
         for (set<string>::const_iterator it=t.Pre().begin(); it!=t.Pre().end(); ++it)
           cout << *it << " ";
@@ -51,6 +55,7 @@ class Printer : public SymParser // {{{
 
 int main(int argc, char **argv) // {{{
 {
+  try {
   if (argc<2)
   {
     cout << "Syntax: showdefs <xfilename> [<parse string>]" << endl;
@@ -63,6 +68,10 @@ int main(int argc, char **argv) // {{{
     parsetree *tree = printer.Parse(argv[2]);
     cout << tree->ToString() << endl;
     delete tree;
+  }
+  }
+  catch (string s) {
+    cout << "Exception: " << s << endl;
   }
   return 0;
 } // }}}
