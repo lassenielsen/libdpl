@@ -44,9 +44,9 @@ Bnf::Bnf(const string &bnf_string) // {{{
     t = bnf_tokenizer.PopToken();
 
     if (c.size()==0 && t.name=="tag")
-    { cname=t.content;
+    { cname=t.content.substr(2);
     }
-    if (t.name == "|" || t.name == "_EOF") // End current constructor
+    else if (t.name == "|" || t.name == "_EOF") // End current constructor
     {
       if (cname=="")
       { stringstream buf;

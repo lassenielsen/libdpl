@@ -10,7 +10,7 @@ lit := "[^01()+*\\]+\\[^]"
 *   := "\*"
 
 # TYPES
-re  ::= re2 + re | re2
-re2 ::= re3 re2  | re3
-re3 ::= re3 *    | re4
-re4 ::= 0 | 1    | lit | ( re )
+re  ::= ::sum re2 + re | ::nl re2
+re2 ::= ::seq re3 re2  | ::nl re3
+re3 ::= ::rep re3 *    | ::nl re4
+re4 ::= ::zero 0       | ::one 1  | ::lit lit | ::par ( re )
