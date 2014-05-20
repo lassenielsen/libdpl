@@ -1,16 +1,19 @@
 # A small ttd (Token- and Type-Definitions) file defining the mathematical regular expression notation
 
 # TOKENS
-lit := "[^01()+*\\]+\\[^]"
-0   := "0"
-1   := "1"
+lit := "[^()+*\\]+\\[^]"
 (   := "\("
 )   := "\)"
-+   := "\+"
+[   := "\["
+]   := "\]"
+^   := "\^"
+-   := "\-"
+or   := "\|"
 *   := "\*"
 
 # TYPES
-re  ::= ::sum re2 + re | ::nl re2
+re  ::= ::sum re2 or re | ::nl re2
 re2 ::= ::seq re3 re2  | ::nl re3
 re3 ::= ::rep re3 *    | ::nl re4
-re4 ::= ::zero 0       | ::one 1  | ::lit lit | ::par ( re )
+re4 ::= ::unit ( ) | ::lit lit | ::int [ int ] | ::rint [ ^ int ] | ::par ( re )
+int ::= ::empty | ::lit lit | ::int lit - lit

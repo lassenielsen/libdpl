@@ -1,4 +1,5 @@
 #include <dpl/parsetree.hpp>
+#include <iostream>
 
 using namespace std;
 using namespace dpl;
@@ -19,7 +20,6 @@ parsetree::parsetree(const string &type_name, const string &case_name, vector<pa
     content(content),
     is_token(false)
 {
-  content.clear();
 } // }}}
 
 parsetree::parsetree(const string &error) // {{{

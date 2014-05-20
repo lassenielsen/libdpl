@@ -5,8 +5,7 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <unordered_map>
-#include <dpl/parsetree.hpp>
+#include <map>
 
 namespace dpl
 {
@@ -45,7 +44,7 @@ class Bnf // {{{
     std::string myName;
     /*! myCases is a map from case name to the definition the case by a vector of token and type names.
      */
-    std::unordered_map<std::string,std::vector<std::string> > myCases;
+    std::map<std::string,std::vector<std::string> > myCases;
     static std::vector<std::string> ourVoid;
 }; // }}}
 

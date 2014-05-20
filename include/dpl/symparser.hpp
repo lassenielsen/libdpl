@@ -1,7 +1,7 @@
 #ifndef DPL_SYMPARSER_HPP
 #define DPL_SYMPARSER_HPP
 
-#include <unordered_map>
+#include <map>
 #include <dpl/symbnf.hpp>
 #include <dpl/parser.hpp>
 
@@ -58,7 +58,7 @@ class SymParser : public Parser // {{{
 
     /*! Internal function to search for cases that can be applied to the end of a list of tokens
      */ 
-    bool make_reduction(std::vector<parsetree*> &peephole, const std::string &case_name, std::vector<std::string> &case_def, const SymBnf &this_type, std::vector<parsetree*> &buffer, std::string post="_EOF");
+    bool make_reduction(std::vector<parsetree*> &peephole, const std::string &case_name, std::vector<std::string> &case_def, const SymBnf &this_type, std::vector<parsetree*> &buffer, std::string post, bool nonempty);
 
     virtual void AddCase(const std::string &type_name,
                          const std::string &case_name,
@@ -67,7 +67,7 @@ class SymParser : public Parser // {{{
                          const Bnf &t);
     
     //! Map from type name to definition
-    std::unordered_map<std::string,SymBnf> myTypes;
+    std::map<std::string,SymBnf> myTypes;
 };
 
 }

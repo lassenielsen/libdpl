@@ -51,7 +51,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
       while (reduced)
       {
         reduced = false;
-        for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin();it_type!=myTypes.end() && !reduced;++it_type)
+        for (map<string,SymBnf>::iterator it_type=myTypes.begin();it_type!=myTypes.end() && !reduced;++it_type)
         {
           vector<string> cases=it_type->second.CaseNames();
           for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end() && !reduced; ++case_name)
@@ -60,7 +60,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
               vector<parsetree*> buffer;
               buffer.clear();
               vector<string> cpy_case(it_type->second.Case(*case_name));
-              if (make_reduction(peephole, *case_name, cpy_case, it_type->second, buffer)) // do reduction if possible
+              if (make_reduction(peephole, *case_name, cpy_case, it_type->second, buffer, post_token.name, false)) // do reduction if possible
                 reduced=true;
             }
         }
@@ -72,7 +72,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
       while (reduced)
       {
         reduced = false;
-        for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin();it_type!=myTypes.end() && !reduced;++it_type)
+        for (map<string,SymBnf>::iterator it_type=myTypes.begin();it_type!=myTypes.end() && !reduced;++it_type)
         {
           if (it_type->second.HasPost(post_token.name)) // Preliminary test
           {
@@ -84,7 +84,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
                 vector<parsetree*> buffer;
                 buffer.clear();
                 vector<string> case_cpy(it_type->second.Case(*case_name));
-                if (make_reduction(peephole, *case_name, case_cpy, it_type->second, buffer, post_token.name)) // do reduction if possible
+                if (make_reduction(peephole, *case_name, case_cpy, it_type->second, buffer, post_token.name, false)) // do reduction if possible
                   reduced=true;
               }
             }
@@ -122,7 +122,7 @@ SymBnf &SymParser::GetType(const std::string &name) // {{{
 
 bool SymParser::IsType(const std::string &name) // {{{
 {
-  unordered_map<string,SymBnf>::iterator it=myTypes.find(name);
+  map<string,SymBnf>::iterator it=myTypes.find(name);
   return (it != myTypes.end() && !it->second.Empty());
 } // }}}
 
@@ -132,7 +132,7 @@ void SymParser::FixNullable() // {{{
   while(updated)
   {
     updated=false;
-    for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
+    for (map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
     {
       if (it_type->second.Nullable())
         continue;
@@ -152,8 +152,8 @@ void SymParser::FixNullable() // {{{
         if (nullable_case)
         {
           it_type->second.SetNullable(true);
-          parsetree void_rep(it_type->second.GetName(),*case_name,void_seq);
-          it_type->second.SetVoidRep(void_rep);
+          parsetree *void_rep=new parsetree(it_type->second.GetName(),*case_name,void_seq);
+          it_type->second.SetVoidRep(*void_rep);
           updated = true;
         }
         else
@@ -174,7 +174,7 @@ void SymParser::FixFirst() // {{{
   while(updated)
   {
     updated=false;
-    for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
+    for (map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
     {
       vector<string> cases=it_type->second.CaseNames();
       for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name)
@@ -208,7 +208,7 @@ void SymParser::FixLast() // {{{
   while(updated)
   {
     updated=false;
-    for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
+    for (map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type)
     {
       vector<string> cases=it_type->second.CaseNames();
       for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name)
@@ -311,7 +311,7 @@ void SymParser::FixFrame() // {{{
   while(updated)
   {
     updated=false;
-    for (unordered_map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type) // Iterate over types
+    for (map<string,SymBnf>::iterator it_type=myTypes.begin(); it_type!=myTypes.end(); ++it_type) // Iterate over types
     {
       vector<string> cases=it_type->second.CaseNames();
       for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name) // Iterate over cases
@@ -343,10 +343,12 @@ void SymParser::FixAll() // {{{
   FixFrame();
 } // }}}
 
-bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_name, vector<string> &case_def, const SymBnf &this_type, vector<parsetree*> &buffer, string post) // {{{
+bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_name, vector<string> &case_def, const SymBnf &this_type, vector<parsetree*> &buffer, string post, bool nonempty) // {{{
 {
   if (case_def.size() == 0) // just check for Frame or Pre
   {
+    if (!nonempty)
+      return false;
     bool pre_test=peephole.size() == 0;
     bool post_test=post=="_EOF";
     string pre="_BOF";
@@ -378,7 +380,7 @@ bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_
   if (arg == peep->type_name) // Last elements match
   {
     buffer.push_back(peep);
-    if (make_reduction(peephole, case_name, case_def, this_type, buffer, post))
+    if (make_reduction(peephole, case_name, case_def, this_type, buffer, post, true))
     {
       buffer.pop_back();
       case_def.push_back(arg);
@@ -391,9 +393,8 @@ bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_
   if (IsType(arg) && GetType(arg).Nullable())
   {
     buffer.push_back(new parsetree(GetType(arg).VoidRep()));
-    if (make_reduction(peephole, case_name, case_def, this_type, buffer, post))
+    if (make_reduction(peephole, case_name, case_def, this_type, buffer, post, nonempty))
     {
-      // FIXME: delete buffer.back(); ???
       buffer.pop_back();
       case_def.push_back(arg);
       return true;

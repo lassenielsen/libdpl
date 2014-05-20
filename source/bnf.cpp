@@ -1,4 +1,5 @@
 #include <dpl/bnf.hpp>
+#include <dpl/tokenizer.hpp>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -81,7 +82,7 @@ void Bnf::AddCase(const string &name, const vector<string> &def) // {{{
 
 const vector<string> &Bnf::Case(const string &name) const // {{{
 {
-  auto it=myCases.find(name);
+  std::map<std::string,std::vector<std::string> >::const_iterator it=myCases.find(name);
   if (it==myCases.end())
     return ourVoid;
   
@@ -91,7 +92,7 @@ const vector<string> &Bnf::Case(const string &name) const // {{{
 vector<string> Bnf::CaseNames() const // {{{
 {
   vector<string> result;
-  for (auto it=myCases.begin(); it!=myCases.end(); ++it)
+  for (std::map<std::string,std::vector<std::string> >::const_iterator it=myCases.begin(); it!=myCases.end(); ++it)
     result.push_back(it->first);
   
   return result;

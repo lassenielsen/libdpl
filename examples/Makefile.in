@@ -2,7 +2,7 @@ programs = xmlparser calc showdefs
 version = 0.0.1-a
 compiler = g++
 ctags = ctags
-args = -std=c++0x
+args =
 libs = -ldpl
 OS_AUTO = $(shell uname -s)
 COMMENT = _

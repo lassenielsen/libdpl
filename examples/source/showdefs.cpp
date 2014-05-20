@@ -13,7 +13,7 @@ class Printer : public SymParser // {{{
     void PrintDetails() // Print meta information about types
     {
       FixAll();
-      for (unordered_map<string,SymBnf>::const_iterator it=myTypes.begin(); it!=myTypes.end(); ++it)
+      for (map<string,SymBnf>::const_iterator it=myTypes.begin(); it!=myTypes.end(); ++it)
       {
         if (!IsType(it->first))
           continue;
