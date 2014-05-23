@@ -5,18 +5,19 @@ using namespace dpl;
 
 SymBnf::SymBnf(const string &bnf_string) // {{{
 : Bnf(bnf_string)
-, myNullable(false)
+, myVoidRep(NULL)
 {
 } // }}}
 
 SymBnf::SymBnf(const Bnf &bnf) // {{{
 : Bnf(bnf)
-, myNullable(false)
+, myVoidRep(NULL)
 {
 } // }}}
 
 SymBnf::~SymBnf() // {{{
-{
+{ if (myVoidRep!=NULL)
+    delete myVoidRep;
 } // }}}
 
 bool SymBnf::AddFirst(const string &token) // {{{
@@ -57,24 +58,42 @@ bool SymBnf::AddLast(const set<string> &source) // {{{
   return updated;
 } // }}}
 
-bool SymBnf::AddFrame(const string &pre, const string &post) // {{{
-{ pair<string,string> frame = pair<string,string>(pre,post);
-  if (myFrame.find(frame) == myFrame.end())
+bool SymBnf::AddPre(const string &token) // {{{
+{
+  if (myPre.find(token) == myPre.end())
   {
-    myFrame.insert(frame);
-    myPre.insert(pre);
-    myPost.insert(post);
+    myPre.insert(token);
     return true;
   }
   return false;
 } // }}}
 
-void SymBnf::SetNullable(bool value) // {{{
+bool SymBnf::AddPost(const string &token) // {{{
 {
-  myNullable = value;
+  if (myPost.find(token) == myPost.end())
+  {
+    myPost.insert(token);
+    return true;
+  }
+  return false;
 } // }}}
 
-void SymBnf::SetVoidRep(const parsetree &rep) // {{{
+bool SymBnf::AddFrame(const string &pre, const string &post) // {{{
+{ pair<string,string> frame = pair<string,string>(pre,post);
+  bool updated=false;
+  if (myFrame.find(frame) == myFrame.end())
+  {
+    myFrame.insert(frame);
+    updated=true;
+  }
+  if (AddPre(pre))
+    updated=true;
+  if (AddPost(post))
+    updated=true;
+  return updated;
+} // }}}
+
+void SymBnf::SetVoidRep(parsetree *rep) // {{{
 {
   myVoidRep = rep;
 } // }}}

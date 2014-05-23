@@ -29,12 +29,13 @@ class SymBnf : public Bnf
     bool AddFirst(const std::set<std::string> &source);
     bool AddLast(const std::string &token);
     bool AddLast(const std::set<std::string> &source);
+    bool AddPre(const std::string &token);
+    bool AddPost(const std::string &token);
     bool AddFrame(const std::string &pre, const std::string &post);
 
-    bool Nullable() const {return myNullable;}
-    void SetNullable(bool value=true);
-    const parsetree &VoidRep() const {return myVoidRep;}
-    void SetVoidRep(const parsetree &rep);
+    bool Nullable() const {return myVoidRep!=NULL;}
+    const parsetree &VoidRep() const {return *myVoidRep;}
+    void SetVoidRep(parsetree *rep);
 
   private:
     // Calculated info
@@ -43,8 +44,7 @@ class SymBnf : public Bnf
     std::set<std::pair<std::string,std::string> > myFrame;
     std::set<std::string> myPre;
     std::set<std::string> myPost;
-    bool myNullable;
-    parsetree myVoidRep;
+    parsetree *myVoidRep;
 };
 
 }

@@ -52,15 +52,19 @@ string parsetree::ToString(bool include_cases) // {{{
   {
     return type_name + ": " + case_name;
   }
-  string result = type_name + " ";
-  for (vector<parsetree*>::iterator it=content.begin(); it!=content.end(); ++it)
-  {
-    if ((*it)->case_name != "_TOKEN")
-      result += "(";
-    result += (*it)->ToString(include_cases);
-    if ((*it)->case_name != "_TOKEN")
-      result += ")";
+  string result = type_name;
+  if (case_name!="_TOKEN")
+    result += "." + case_name;
+  if (case_name!="_TOKEN" && content.size()>0)
+  { result += "( ";
+    for (vector<parsetree*>::iterator it=content.begin(); it!=content.end(); ++it)
+    {
+      result += (*it)->ToString(include_cases);
+      result += " ";
+    }
+    result += ")";
   }
+
   return result;
 } // }}}
 

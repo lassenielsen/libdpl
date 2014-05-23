@@ -1,6 +1,7 @@
 # A small ttd (Token- and Type-Definitions) file defining a sequence of pairs
 
 # TOKENS
+   := "[\n\t\r ]"
 id := "[a-zA-Z][a-zA-Z0-9]*"
 (  := "\("
 )  := "\)"

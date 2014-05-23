@@ -56,19 +56,19 @@ class Printer : public SymParser // {{{
 int main(int argc, char **argv) // {{{
 {
   try {
-  if (argc<2)
-  {
-    cout << "Syntax: showdefs <xfilename> [<parse string>]" << endl;
-    return 1;
-  }
-  Printer printer(argv[1]);
-  printer.PrintDetails();
-  if (argc>2)
-  {
-    parsetree *tree = printer.Parse(argv[2]);
-    cout << tree->ToString() << endl;
-    delete tree;
-  }
+    if (argc<2)
+    {
+      cout << "Syntax: showdefs <xfilename> [<parse string>]" << endl;
+      return 1;
+    }
+    Printer printer(argv[1]);
+    printer.PrintDetails();
+    if (argc>2)
+    {
+      parsetree *tree = printer.Parse(argv[2]);
+      cout << tree->ToString() << endl;
+      delete tree;
+    }
   }
   catch (string s) {
     cout << "Exception: " << s << endl;

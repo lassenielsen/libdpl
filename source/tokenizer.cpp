@@ -207,7 +207,7 @@ void Tokenizer::SetBuffer(const string &buffer) // {{{
 //    myCompressed = frca->CompressLL(buffer);
 //  else
     myCompressed = frca->CompressGL(buffer);
-//  delete frca;
+  delete frca;
   myPos=0;
 }; // }}}
 

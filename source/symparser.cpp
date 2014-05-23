@@ -104,8 +104,9 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
     {
       error+= " ";
       error+= (*it)->type_name;
-//      error+= ".";
-//      error+= it->case_name;
+      error+= ".";
+      error+= (*it)->case_name;
+      delete *it;
     }
     parsetree *result = new parsetree(error);
     return result;
@@ -138,7 +139,7 @@ void SymParser::FixNullable() // {{{
         continue;
 
       vector<string> cases=it_type->second.CaseNames();
-      for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name)
+      for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end() && !it_type->second.Nullable(); ++case_name)
       {
         bool nullable_case = true;
         vector<parsetree*> void_seq;
@@ -151,9 +152,8 @@ void SymParser::FixNullable() // {{{
         }
         if (nullable_case)
         {
-          it_type->second.SetNullable(true);
           parsetree *void_rep=new parsetree(it_type->second.GetName(),*case_name,void_seq);
-          it_type->second.SetVoidRep(*void_rep);
+          it_type->second.SetVoidRep(void_rep);
           updated = true;
         }
         else
@@ -244,7 +244,11 @@ void set_include(const set<string> &source, set<string> &dest) // {{{
 
 bool SymParser::FramePostRec(const std::string &pre, SymBnf &t, const std::string &post) // {{{
 { bool updated=false;
-  if (t.AddFrame(pre,post))
+  if (pre!="" && post!="" && t.AddFrame(pre,post))
+    updated=true;
+  else if (pre!="" && post=="" && t.AddPre(pre))
+    updated=true;
+  else if (pre=="" && post!="" && t.AddPost(post))
     updated=true;
   if (IsType(post) && updated)
   { SymBnf &t_post = GetType(post);
@@ -263,6 +267,8 @@ bool SymParser::FrameAllPosts(const std::string &pre, SymBnf &t, vector<string>:
     { for (set<string>::const_iterator it_follow=follow.begin(); it_follow!=follow.end(); ++it_follow)
         if (FramePostRec(pre,t,*it_follow))
           updated=true;
+      if (FramePostRec(pre,t,""))
+        updated=true;
       break;
     }
     else if (FramePostRec(pre,t,*post))
@@ -294,6 +300,8 @@ bool SymParser::FrameAllPres(vector<string>::const_iterator pre, SymBnf &t, vect
     { for (set<string>::const_iterator it_precede=precede.begin(); it_precede!=precede.end(); ++it_precede)
         if (FramePreRec(*it_precede,t,post,end,follow))
           updated=true;
+      if (FramePreRec("",t,post,end,follow))
+        updated=true;
       break;
     }
     --pre;
@@ -316,7 +324,7 @@ void SymParser::FixFrame() // {{{
       vector<string> cases=it_type->second.CaseNames();
       for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end(); ++case_name) // Iterate over cases
       {
-        for (vector<string>::const_iterator it_arg=it_type->second.Case(*case_name).begin(); it_arg!=it_type->second.Case(*case_name).end(); ++it_arg)
+        for (vector<string>::const_iterator it_arg=it_type->second.Case(*case_name).begin(); it_arg!=it_type->second.Case(*case_name).end(); ++it_arg) // Iiterate over args in case
         {
           if (IsType(*it_arg))
           {
