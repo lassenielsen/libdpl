@@ -15,7 +15,7 @@ inline bool init_bnf_tokenizer(Tokenizer &tokenizer) // {{{
   tokenizer.DefToken("::=","::=",1);
   tokenizer.DefToken("|","\\|",2);
   tokenizer.DefToken("tag","::[a-zA-Z0-9_]*",3);
-  tokenizer.DefToken("id","[^:=| \t\r\n][^| \t\r\n]*",4);
+  tokenizer.DefToken("id","[^:| \t\r\n][^| \t\r\n]*",4);
   return true;
 } // }}}
 
@@ -24,7 +24,7 @@ Bnf::Bnf(const string &bnf_string) // {{{
   if (bnf_string=="")
     return; // Create empty Bnf
 
-  Tokenizer bnf_tokenizer;
+  Tokenizer bnf_tokenizer("ll");
   init_bnf_tokenizer(bnf_tokenizer);
   bnf_tokenizer.SetBuffer(bnf_string);
   token type_name = bnf_tokenizer.PopToken();

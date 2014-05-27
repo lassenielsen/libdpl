@@ -120,7 +120,7 @@ class Tokenizer // {{{
     void Clear();
 
 
-  private:
+  protected:
     std::vector<tokendef> myTokenDefs;
     BitCode myCompressed;
     int myPos;

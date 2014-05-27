@@ -99,17 +99,18 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
   SetBuffer("");
   if (peephole.size() != 1)
   {
-    string error = "Parser error at:";
+    string error = "Parser error at: ";
     for (vector<parsetree*>::iterator it = peephole.begin(); it != peephole.end(); ++it)
     {
       error+= " ";
       error+= (*it)->type_name;
-      error+= ".";
-      error+= (*it)->case_name;
+      if ((*it)->case_name != "_TOKEN")
+      { error+= ".";
+        error+= (*it)->case_name;
+      }
       delete *it;
     }
-    parsetree *result = new parsetree(error);
-    return result;
+    throw error;
   }
 
   // If no error, return the found tree

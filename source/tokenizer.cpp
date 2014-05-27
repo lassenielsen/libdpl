@@ -50,6 +50,7 @@ string keyword_escape(string reg) // {{{
 {
   // Escape: \[()+*01 chars
   string_escape(reg,"\\");
+  string_escape(reg,"|");
   string_escape(reg,"[");
   string_escape(reg,"(");
   string_escape(reg,")");
