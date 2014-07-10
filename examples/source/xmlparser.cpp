@@ -17,7 +17,8 @@ int main(int argc, char **argv)
     parser.DefKeywordToken("<",2);
     parser.DefKeywordToken("</",1);
     parser.DefKeywordToken(">");
-    parser.DefType("branch ::= < id equals > tree </ id >");
+    parser.DefKeywordToken("/>");
+    parser.DefType("branch ::= < id equals > tree </ id > | < id equals />");
     parser.DefType("equals ::= | id eq string equals");
     parser.DefType("tree ::= | branch tree");
     
