@@ -36,7 +36,7 @@ action SlrParser::FindAction(const std::set<node> &state, const std::string &sym
       }
     }
   }
-}
+} // }}}
 
 parsetree *SlrParser::Parse(const string &buffer) // {{{
 {
