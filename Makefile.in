@@ -33,14 +33,21 @@ library_objects = \
   objects/bnf.o \
   objects/parser.o \
   objects/symbnf.o \
-  objects/symparser.o
+  objects/symparser.o \
+  objects/slrparser.o
 
 default:
 	@echo "Use make config, make build, sudo make install, make clean and if you don't like it sudo make uninstall."
 
 all: config build install clean
 
-phony: default config build install uninstall clean tags package deb
+phony: default config build install uninstall clean tags package deb doc doc/html
+
+doc: doc/html
+
+doc/html: include/$(name)/*.hpp source/*.cpp Doxyfile
+	mkdir -p doc/
+	doxygen Doxyfile
 
 config:
 ifeq ($(OS),linux)
