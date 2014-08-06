@@ -19,9 +19,9 @@ class SlrParser : public SymParser // {{{
 {
   public:
     //! Construct parser with empty grammer.
-    SlrParser();
+    SlrParser(const std::string &init);
     //! Construct parser and load grammer from file.
-    SlrParser(const std::string &filename);
+    SlrParser(const std::string &init, const std::string &filename);
     //! Destructor
     virtual ~SlrParser();
 

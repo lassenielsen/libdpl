@@ -5,12 +5,13 @@
 using namespace std;
 using namespace dpl;
 
-SlrParser::SlrParser() // {{{
-{
+SlrParser::SlrParser(const string &init) // {{{
+{ SetInit(init);
 } // }}}
 
-SlrParser::SlrParser(const string &filename) // {{{
-{ LoadFile(filename);
+SlrParser::SlrParser(const string &init, const string &filename) // {{{
+{ SetInit(init);
+  LoadFile(filename);
 } // }}}
 
 SlrParser::~SlrParser() // {{{
@@ -19,6 +20,9 @@ SlrParser::~SlrParser() // {{{
 
 parsetree *SlrParser::Parse(const string &buffer) // {{{
 {
+  GetType(myInit).AddPost("_EOF");
+
+  FixAll();
   // Initialize buffer
   SetBuffer(buffer);
 
@@ -99,13 +103,9 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
       SymBnf &red_bnf = GetType(a.t);
       vector<string> red_prd = red_bnf.Case(a.c);
       vector<parsetree*> red_content;
-      for (size_t i=0; i<red_prd.size(); ++i)
-      { // Move content to new tree
-        parsetree *sub=tree_stack.back();
-        tree_stack.pop_back();
-        state_stack.pop_back();
-        red_content.push_back(sub);
-      }
+      red_content.insert(red_content.end(),tree_stack.end()-red_prd.size(),tree_stack.end());
+      tree_stack.erase(tree_stack.end()-red_prd.size(),tree_stack.end());
+      state_stack.erase(state_stack.end()-red_prd.size(),state_stack.end());
       parsetree *new_tree=new parsetree(a.t, a.c, red_content);
       peephole.push_back(next);
       peephole.push_back(new_tree);
@@ -117,14 +117,19 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     }
     else
     { // Unknown action - parser error
-      throw string("Error: next=") + next->type_name + " is not accepted at current location";
+      if (tree_stack.size()==1 && tree_stack[0]->type_name==myInit && next->type_name=="_EOF") // Accept
+      { delete next;
+        break;
+      }
+      else
+        throw string("next=") + next->type_name + " is not accepted at current location";
     }
   }
   SetBuffer("");
-  if (peephole.size() != 1)
+  if (tree_stack.size() != 1)
   {
     string error = "Parser error at: ";
-    for (vector<parsetree*>::iterator it = peephole.begin(); it != peephole.end(); ++it)
+    for (vector<parsetree*>::iterator it = tree_stack.begin(); it != tree_stack.end(); ++it)
     {
       error+= " ";
       error+= (*it)->type_name;
@@ -138,7 +143,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
   }
 
   // If no error, return the found tree
-  return peephole.front();
+  return tree_stack.front();
 } // }}}
 
 void SlrParser::EpsilonClosure(set<node> &state) // {{{
@@ -184,6 +189,10 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
 
   // If no hit, calculate action
   set<node> source=myStates[state];
+  //cout << "FindAction({";
+  //for (set<node>::const_iterator i = source.begin(); i!=source.end(); ++i)
+  //  cout << i->t << "." << i->c << ":" << i->p << ",";
+  //cout << "}, " << symbol << ")";
 
   set<node> shift_dest;
   string reduce_type;
@@ -249,5 +258,6 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
   // Store result
   myTransitions[pair<int,string>(state,symbol)]=result;
 
+  //cout << " = " << result.sr << endl;
   return result;
 } // }}}

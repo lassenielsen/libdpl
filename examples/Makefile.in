@@ -1,4 +1,4 @@
-programs = xmlparser calc showdefs
+programs = xmlparser calc showdefs slrcalc
 version = 0.0.1-a
 compiler = g++
 ctags = ctags
@@ -78,6 +78,9 @@ xmlparser: $(objects) objects/xmlparser.o include/config.hpp
 
 calc: $(objects) objects/calc.o include/config.hpp
 	$(compiler) objects/calc.o $(objects) -o calc $(args) $(libs)
+
+slrcalc: $(objects) objects/slrcalc.o include/config.hpp
+	$(compiler) objects/slrcalc.o $(objects) -o slrcalc $(args) $(libs)
 
 test_special: $(objects) objects/test_special.o include/config.hpp
 	$(compiler) objects/test_special.o $(objects) -o test_special $(args) $(libs)
