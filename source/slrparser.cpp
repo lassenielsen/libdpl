@@ -208,7 +208,19 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
     }
     else if (n->p==n_case.size() && n_bnf.Post().find(symbol)!=n_bnf.Post().end()) { // Reduce
       if (reduce_type.size()>0)
-        cerr << "Reduce-reduce conflict for " << reduce_type << "." << reduce_case << " and " << n->t << "." << n->c << endl;
+      { map<string,int>::const_iterator prio1=myRRRules.find(reduce_type);
+        map<string,int>::const_iterator prio2=myRRRules.find(n->t);
+        if (prio1==myRRRules.end() || prio2==myRRRules.end() || prio1->second==prio2->second)
+          cerr << "Reduce-reduce conflict for " << reduce_type << "." << reduce_case << " and " << n->t << "." << n->c << endl;
+        else if (prio1->second < prio2->second)
+        { // Do Nothing
+        }
+        else
+        { // Use new reduction
+          reduce_type = n->t;
+          reduce_case = n->c;
+        }
+      }
       else
       { reduce_type = n->t;
         reduce_case = n->c;
@@ -217,7 +229,14 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
   }
 
   if (shift_dest.size()>0 && reduce_type.size()>0)
-    cerr << "Shift-reduce conflict" << endl;
+  { map<string,bool>::const_iterator rule=mySRRules.find(reduce_type);
+    if (rule==mySRRules.end())
+      cerr << "Shift-reduce conflict on type:" << reduce_type << endl;
+    else if (rule->second)
+      shift_dest.clear();
+    else
+      reduce_type="";
+  }
 
   action result;
   if (reduce_type.size()>0)

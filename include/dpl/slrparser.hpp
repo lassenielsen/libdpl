@@ -39,6 +39,24 @@ class SlrParser : public SymParser // {{{
       int p;         //!< The position (index)
     };
 
+    // DOCUMENTATION {{{
+    /*! \brief AddSRRule is used to disambiguate the productions, by specifying
+     *  how shift-reduce conflicts should be resolved.
+     *
+     *  @mode determines how to resolve. True => reduce, False => shift.
+     */
+    // }}}
+    void AddSRRule(const std::string &type_name, bool mode) { mySRRules[type_name]=mode; }
+
+    // DOCUMENTATION {{{
+    /*! \brief AddRRRule is used to disambiguate the productions, by specifying
+     *  how reduce-reduce conflicts should be resolved.
+     *
+     *  @prio determines how to resolve. If prio(A)<prio(B) then A reduction is used over B reduction.
+     */
+    // }}}
+    void AddRRRule(const std::string &type_name, int prio) { myRRRules[type_name]=prio; }
+
   protected:
     // DOCUMENTATION {{{
     //! Represents the action to be performed when observing a token (at a specific state).
@@ -67,6 +85,10 @@ class SlrParser : public SymParser // {{{
     std::vector<std::set<node> > myStates;
     //! For each edge (state and token- or type-name) stores the action and destination (if shift) state
     std::map<std::pair<int,std::string>,action> myTransitions;
+    // True if reduce over shift for name
+    std::map<std::string,bool> mySRRules;
+    //! If myRRRules[A]<myRRRules[B] then A reductions are used over B reductions
+    std::map<std::string,int> myRRRules;
 };
 
 inline bool operator<(const SlrParser::node &lhs, const SlrParser::node &rhs) // {{{
