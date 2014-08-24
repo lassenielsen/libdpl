@@ -122,7 +122,9 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
         break;
       }
       else
-        throw string("next=") + next->type_name + " is not accepted at current location";
+      { pair<int,int> pos=next->GetPosition();
+        throw string("next=") + next->type_name + " is not accepted at current location: " + int2string(pos.first) + ":" + int2string(pos.second);
+      }
     }
   }
   SetBuffer("");

@@ -19,10 +19,12 @@ namespace dpl
 class token // {{{
 {
   public:
-    token(std::string name="", std::string content="", std::string pre_content=" ");
+    token(std::string name="", std::string content="", std::string pre_content=" ", int line=0, int column=0);
     std::string name;
     std::string content;
     std::string pre_content;
+    int line;
+    int column;
 }; // }}}
 
 // DOCUMENATAION {{{
@@ -149,6 +151,8 @@ class Tokenizer // {{{
     RE_Star *myStar;
     bool myDirty;
     std::string myMode;
+    int myCurrentLine;
+    int myCurrentColumn;
 }; // }}}
 
 }

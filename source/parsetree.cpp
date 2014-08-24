@@ -68,3 +68,15 @@ string parsetree::ToString(bool include_cases) // {{{
   return result;
 } // }}}
 
+pair<int,int> parsetree::GetPosition() // {{{
+{
+  if (type_name == "_ERROR")
+    return pair<int,int>(0,0);
+  if (is_token)
+    return pair<int,int>(root.line,root.column);
+  else if (content.size()==0)
+    return pair<int,int>(0,0);
+  else
+    return content[0]->GetPosition();
+} // }}}
+
