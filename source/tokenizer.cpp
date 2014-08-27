@@ -8,17 +8,21 @@ using namespace dpl;
 //using namespace pcrepp;
 
 // token methods
-token::token(string name, string content, string pre_content) // {{{
+token::token(string name, string content, string pre_content, int line, int column) // {{{
 : name(name),
   content(content),
-  pre_content(pre_content)
+  pre_content(pre_content),
+  line(line),
+  column(column)
 {
 } // }}}
 
 // Tokenizer methods
 Tokenizer::Tokenizer(string mode) // {{{
 : myPos(0),
-  myMode(mode)
+  myMode(mode),
+  myCurrentLine(1),
+  myCurrentColumn(1)
 {
   myTokenDefs.clear();
   myStar=NULL;
@@ -219,6 +223,8 @@ token Tokenizer::PopToken() // {{{
   string token_pre="";
   string token_name="";
   string token_content="";
+  int token_line=0;
+  int token_column=0;
   while (token_name=="")
   { // while comment tokens, move content to pre_content and find next token
     token_pre+=token_content;
@@ -240,6 +246,17 @@ token Tokenizer::PopToken() // {{{
       int tid=tokenid(myTokenDefs,*token_value); // Find index of tokendef
       token_name=myTokenDefs[tid].name;
       token_content=token_value->Flatten();
+      // Update position
+      token_line=myCurrentLine;
+      token_column=myCurrentColumn;
+      for (string::const_iterator p=token_content.begin(); p!=token_content.end(); ++p)
+      { if (*p=='\n')
+        { myCurrentColumn=1;
+          ++myCurrentLine;
+        }
+        else
+          ++myCurrentColumn;
+      }
       delete token_value;
       // myPos incremented by Decompress
     }
@@ -257,7 +274,7 @@ token Tokenizer::PopToken() // {{{
 //    myPos=0;
 //  }
   // Return found token
-  return token(token_name,token_content,token_pre);
+  return token(token_name,token_content,token_pre,token_line,token_column);
 }; // }}}
 
 void Tokenizer::Tokenize(vector<token> &dest) // {{{
