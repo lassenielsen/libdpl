@@ -141,6 +141,8 @@ class Tokenizer // {{{
     // }}}
     bool Empty();
 
+    //! Determin if name has token definition
+    bool IsTokenDef(const std::string &name) const { for (std::vector<tokendef>::const_iterator it=myTokenDefs.begin(); it!=myTokenDefs.end(); ++it) if (it->name==name) return true; return false; }
     //! Clear clears the token definitions as well as the buffer.
     void Clear();
 

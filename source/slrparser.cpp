@@ -20,6 +20,9 @@ SlrParser::~SlrParser() // {{{
 
 parsetree *SlrParser::Parse(const string &buffer) // {{{
 {
+  // FIXME: IF DIRTY
+  myStates.clear();
+  myTransitions.clear();
   GetType(myInit).AddPost("_EOF");
 
   FixAll();
@@ -40,7 +43,13 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     EpsilonClosure(init_state);
     myStates.push_back(init_state);
   }
-
+  // Accept initial symbol
+  { action result;
+    result.sr="SHIFT";
+    result.dest=AddState(set<node>());
+    myTransitions[pair<int,string>(0,myInit)]=result;
+  }
+  
 
   /* Build states dynamically
   // Build reachable states, and transitions
@@ -249,28 +258,7 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
   else if (shift_dest.size()>0)
   { result.sr="SHIFT";
     EpsilonClosure(shift_dest);
-    // Find dest if in states, otherwise add it
-    size_t index=0;
-    for (;index<myStates.size() /*&& myStates[index]!=shift_dest*/; ++index)
-    { bool eq=true;
-      // Check myStates[index] included in shift_dest
-      for (set<node>::const_iterator s=myStates[index].begin(); eq && s!=myStates[index].end(); ++s)
-        if (shift_dest.find(*s)==shift_dest.end())
-          eq=false;
-      // Check shift_dest included in myStates[index]
-      for (set<node>::const_iterator s=shift_dest.begin(); eq && s!=shift_dest.end(); ++s)
-        if (myStates[index].find(*s)==myStates[index].end())
-          eq=false;
-      if (eq)
-        break;
-    }
-
-    if (index<myStates.size())
-      result.dest=index;
-    else
-    { myStates.push_back(shift_dest);
-      result.dest=myStates.size()-1;
-    }
+    result.dest=AddState(shift_dest);
   }
   else
   {  result.sr="EMPTY";
@@ -281,4 +269,34 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
 
   //cout << " = " << result.sr << endl;
   return result;
+} // }}}
+
+int SlrParser::FindState(const set<node> &state) const // {{{
+{
+  for (int index=0;index<myStates.size(); ++index)
+  { bool eq=true;
+    // Check myStates[index] included in shift_dest
+    for (set<node>::const_iterator s=myStates[index].begin(); eq && s!=myStates[index].end(); ++s)
+      if (state.find(*s)==state.end())
+        eq=false;
+    // Check shift_dest included in myStates[index]
+    for (set<node>::const_iterator s=state.begin(); eq && s!=state.end(); ++s)
+      if (myStates[index].find(*s)==myStates[index].end())
+        eq=false;
+    if (eq)
+      return index;
+  }
+  return -1;
+} // }}}
+
+int SlrParser::AddState(const set<node> &state) // {{{
+{
+  int index=FindState(state);
+
+  if (index>=0)
+    return index;
+  else
+  { myStates.push_back(state);
+    return myStates.size()-1;
+  }
 } // }}}
