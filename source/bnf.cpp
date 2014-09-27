@@ -74,8 +74,10 @@ Bnf::~Bnf() // {{{
 void Bnf::AddCase(const string &name, const vector<string> &def) // {{{
 {
   if (myCases.find(name)!=myCases.end())
+  { if (myCases.find(name)->second==def)
+      return;
     throw string("Adding case with existing name: ") + name;
-
+  }
   myCases[name]=def;
 } // }}}
 

@@ -86,6 +86,13 @@ void Tokenizer::DefToken(const string &name, const string &exp, int priority) //
   def.name = name;
   def.definition = exp;
   def.priority = priority;
+  // Look for prior definition
+  for (vector<tokendef>::const_iterator it=myTokenDefs.begin(); it!=myTokenDefs.end(); ++it)
+    if (it->name==name)
+      if (it->definition==exp && it->priority==priority)
+        return;
+      else
+        throw string("Tokenizer::DefToken: Redefinition of token ") + name;
   // Add the new def
   unsigned int index = 0;
   while (index < myTokenDefs.size() && myTokenDefs[index].priority < priority)

@@ -34,7 +34,7 @@ void Parser::LoadFile(const string &filename) // {{{
 {
   ifstream fin(filename.c_str());
   string line=nextline(fin);
-  while (!fin.eof())
+  while (line.size()>0 || !fin.eof())
   {
     string def=line;
     line=nextline(fin);
