@@ -78,7 +78,7 @@ class Tokenizer // {{{
      *  DefToken(<name>, <regular expression>, priority);
      */
     // }}}
-    bool DefToken(std::string def, int priority=0);
+    bool DefToken(std::string def, int priority=-1);
 
     // DOCUMENATAION {{{
     //! DefKeywordToken is like DefToken,

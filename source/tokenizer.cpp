@@ -111,6 +111,20 @@ bool Tokenizer::DefToken(string def, int priority) // {{{
     return false;
   else
     def=def.substr(2);
+  if (def[0]=='_') // Extract priority
+  { if (priority>=0)
+      return false;
+    string prio;
+    def=def.substr(1);
+    while (def[0]>='0' && def[0]<='9')
+    { prio += def[0];
+      def=def.substr(1);
+    }
+    if (prio=="")
+      return false;
+    priority = stoi(prio);
+  }
+    
   while (def.size()>0 && (def[0]==' ' || def[0]=='\t' || def[0]=='\r' || def[0]=='\n'))
     def=def.substr(1);
   if (def[0] != '"') // Not correct format
