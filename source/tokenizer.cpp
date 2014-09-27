@@ -153,6 +153,9 @@ bool Tokenizer::DefToken(string def, int priority) // {{{
   }
   if (def[0] != '"') // Not correct format
     return false;
+
+  if (priority<0)
+    priority=0;
   
   DefToken(name,exp,priority);
   return true;
