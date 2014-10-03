@@ -29,6 +29,15 @@ class Parser : public Tokenizer // {{{
     virtual ~Parser();
 
     // DOCUMENTATION {{{
+    //! Create parser and tokenizer from definitions in file
+    /*! File uses syntax
+     *  <tokenname> := "<tokendef>"
+     *  <typename> ::= <case1> | <case2> ...
+     */
+    // }}}
+    void LoadFile(const std::string &filename);
+
+    // DOCUMENTATION {{{
     //! DefType takes a string holding a definition in Backus-Nauer-Form, and adds the definition it describes.
     /*! Note that BNF's does not give any way to define case names.
      *  This functionality has been added to the syntax, by disallowing token-
@@ -51,14 +60,6 @@ class Parser : public Tokenizer // {{{
     std::string Unparse(const parsetree &tree);
 
   protected:
-    // DOCUMENTATION {{{
-    //! Create parser and tokenizer from definitions in file
-    /*! File uses syntax
-     *  <tokenname> := "<tokendef>"
-     *  <typename> ::= <case1> | <case2> ...
-     */
-    // }}}
-    void LoadFile(const std::string &filename);
     //! AddCase adds the case definition to the type specified by type_name, under the case_name specified
     virtual void AddCase(const std::string &type_name,
                          const std::string &case_name,
