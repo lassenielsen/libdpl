@@ -1,4 +1,4 @@
-programs = xmlparser calc showdefs slrcalc
+programs = xmlparser calc showdefs slrcalc slrparser
 version = 0.0.1-a
 compiler = g++
 ctags = ctags
@@ -7,7 +7,7 @@ libs = -ldpl
 OS_AUTO = $(shell uname -s)
 COMMENT = _
 
-objects = 
+#OS_LINUXobjects = 
 #OS_MACobjects = 
 
 default:
@@ -47,7 +47,7 @@ include/config.hpp: Makefile
 	echo "#ifndef CONFIG_HPP" >> include/config.hpp
 	echo "#define CONFIG_HPP" >> include/config.hpp
 #OS_MAC	echo "#define OS_MAC" >> include/config.hpp
-	echo "#define OS_LINUX" >> include/config.hpp
+#OS_LINUX	echo "#define OS_LINUX" >> include/config.hpp
 #OS_WIN	echo "#define OS_WIN" >> include/config.hpp
 #GLOOX_VER_0.8.8	echo "#define GLOOX_0_8_8" >> include/config.hpp
 #GLOOX_VER_0.9.0	echo "#define GLOOX_0_9_0" >> include/config.hpp
@@ -81,6 +81,9 @@ calc: $(objects) objects/calc.o include/config.hpp
 
 slrcalc: $(objects) objects/slrcalc.o include/config.hpp
 	$(compiler) objects/slrcalc.o $(objects) -o slrcalc $(args) $(libs)
+
+slrparser: $(objects) objects/slrparser.o include/config.hpp
+	$(compiler) objects/slrparser.o $(objects) -o slrparser $(args) $(libs)
 
 test_special: $(objects) objects/test_special.o include/config.hpp
 	$(compiler) objects/test_special.o $(objects) -o test_special $(args) $(libs)

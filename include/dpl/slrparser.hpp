@@ -93,7 +93,7 @@ class SlrParser : public SymParser // {{{
     std::map<std::string,bool> mySRRules;
     //! If myRRRules[A]<myRRRules[B] then A reductions are used over B reductions
     std::map<std::string,int> myRRRules;
-};
+}; // }}}
 
 inline bool operator<(const SlrParser::node &lhs, const SlrParser::node &rhs) // {{{
 { return lhs.t<rhs.t || (lhs.t==rhs.t && lhs.c<rhs.c) || (lhs.t==rhs.t && lhs.c==rhs.c && lhs.p<rhs.p);

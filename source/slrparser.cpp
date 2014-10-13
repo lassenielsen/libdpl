@@ -23,19 +23,22 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
   // FIXME: IF DIRTY
   myStates.clear();
   myTransitions.clear();
-  GetType(myInit).AddPost("_EOF");
+  if (! IsType("__INit__"))
+    DefType("__INIT__ ::= ::init " + myInit);
+  GetType("__INIT__").AddPost("_EOF");
 
   FixAll();
   // Initialize buffer
   SetBuffer(buffer);
 
+
   // Create initial state
   { set<node> init_state;
-    SymBnf &init=GetType(myInit);
+    SymBnf &init=GetType("__INIT__");
     vector<string> init_cases=init.CaseNames();
     for (int i=0; i<init_cases.size(); ++i)
     { node n;
-      n.t=myInit;
+      n.t="__INIT__";
       n.c=init_cases[i];
       n.p=0;
       init_state.insert(n);
@@ -47,7 +50,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
   { action result;
     result.sr="SHIFT";
     result.dest=AddState(set<node>());
-    myTransitions[pair<int,string>(0,myInit)]=result;
+    myTransitions[pair<int,string>(0,"__INIT__")]=result;
   }
   
 
@@ -105,6 +108,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
       peephole.pop_back();
     }
 
+    //cout << "NEXT: " << next->ToString() << endl;
     // Perform actions from next
     action a = FindAction(state_stack.back(),next->type_name);
     if (a.sr=="REDUCE")
@@ -126,7 +130,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     }
     else
     { // Unknown action - parser error
-      if (tree_stack.size()==1 && tree_stack[0]->type_name==myInit && next->type_name=="_EOF") // Accept
+      if (tree_stack.size()==1 && tree_stack[0]->type_name=="__INIT__" && next->type_name=="_EOF") // Accept
       { delete next;
         break;
       }
@@ -153,8 +157,14 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     throw error;
   }
 
+  if (tree_stack[0]->type_name!="__INIT__" || tree_stack[0]->case_name!="init")
+    throw string("Unexpected result: ") + tree_stack[0]->type_name + "." + tree_stack[0]->case_name;
+
+  parsetree *result = new parsetree(*tree_stack[0]->content[0]);
+  DeleteVector(tree_stack);
+
   // If no error, return the found tree
-  return tree_stack.front();
+  return result;
 } // }}}
 
 void SlrParser::EpsilonClosure(set<node> &state) // {{{
