@@ -69,15 +69,15 @@ string parsetree::ToString(bool include_cases) // {{{
   return result;
 } // }}}
 
-pair<int,int> parsetree::GetPosition() // {{{
+pair<int,int> parsetree::GetPosition() const // {{{
 {
-  if (type_name == "_ERROR")
-    return pair<int,int>(0,0);
   if (is_token)
     return pair<int,int>(root.line,root.column);
-  else if (content.size()==0)
-    return pair<int,int>(0,0);
-  else
-    return content[0]->GetPosition();
+  for (vector<parsetree*>::const_iterator it=content.begin(); it!=content.end(); ++it)
+  { pair<int,int> pos=(*it)->GetPosition();
+    if (pos!=pair<int,int>(-1,-1))
+      return pos;
+  }
+  return pair<int,int>(-1,-1);
 } // }}}
 
