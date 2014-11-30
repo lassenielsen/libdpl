@@ -1,11 +1,11 @@
 INTRODUCTION:
-This is the DPL (Dynamic Parser Library), also called DynParser.
+This is DPL (Dynamic Parser Library).
 DPL is a library written for C++, to give a simple API for programming with
 formal languages. Simplicity is obtained by working directly with BNFs
 (Baccus-Nauer Form, also called Baccus Normal Form), and by not using a
 precompilation step as most other parser frameworks.
 
-This software is written by Lasse Nielsen(lasse.nielsen.dk@gmail.com),
+This software is written by Lasse Nielsen (lasse.nielsen.dk@gmail.com),
 and distributed under the GNU GPL v.3 or later.
 
 This means that it is perfectly legal to obtain, use and maintain this software,

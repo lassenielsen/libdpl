@@ -2,7 +2,7 @@ programs = xmlparser calc showdefs slrcalc slrparser
 version = 0.0.1-a
 compiler = g++
 ctags = ctags
-args =
+args = -std=c++0x
 libs = -ldpl
 OS_AUTO = $(shell uname -s)
 COMMENT = _
