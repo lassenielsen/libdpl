@@ -63,7 +63,7 @@ Bnf::Bnf(const string &bnf_string) // {{{
       c.push_back(t.content);
     else // Tokenizer error
          // hack: remove all cases
-      throw string("Bnf constructor: Bad BNF: ") + bnf_string;
+      throw string("Bnf constructor: Bad BNF at: ") + t.content + " in: " + bnf_string;
   }
 } // }}}
 
@@ -74,11 +74,12 @@ Bnf::~Bnf() // {{{
 void Bnf::AddCase(const string &name, const vector<string> &def) // {{{
 {
   if (myCases.find(name)!=myCases.end())
+  { if (myCases.find(name)->second==def)
+      return;
     throw string("Adding case with existing name: ") + name;
-
+  }
   myCases[name]=def;
 } // }}}
-
 
 const vector<string> &Bnf::Case(const string &name) const // {{{
 {

@@ -86,6 +86,13 @@ void Tokenizer::DefToken(const string &name, const string &exp, int priority) //
   def.name = name;
   def.definition = exp;
   def.priority = priority;
+  // Look for prior definition
+  for (vector<tokendef>::const_iterator it=myTokenDefs.begin(); it!=myTokenDefs.end(); ++it)
+    if (it->name==name)
+      if (it->definition==exp && it->priority==priority)
+        return;
+      else
+        throw string("Tokenizer::DefToken: Redefinition of token ") + name;
   // Add the new def
   unsigned int index = 0;
   while (index < myTokenDefs.size() && myTokenDefs[index].priority < priority)
@@ -111,6 +118,20 @@ bool Tokenizer::DefToken(string def, int priority) // {{{
     return false;
   else
     def=def.substr(2);
+  if (def[0]=='_') // Extract priority
+  { if (priority>=0)
+      return false;
+    string prio;
+    def=def.substr(1);
+    while (def[0]>='0' && def[0]<='9')
+    { prio += def[0];
+      def=def.substr(1);
+    }
+    if (prio=="")
+      return false;
+    priority = stoi(prio);
+  }
+    
   while (def.size()>0 && (def[0]==' ' || def[0]=='\t' || def[0]=='\r' || def[0]=='\n'))
     def=def.substr(1);
   if (def[0] != '"') // Not correct format
@@ -132,6 +153,9 @@ bool Tokenizer::DefToken(string def, int priority) // {{{
   }
   if (def[0] != '"') // Not correct format
     return false;
+
+  if (priority<0)
+    priority=0;
   
   DefToken(name,exp,priority);
   return true;
@@ -211,7 +235,7 @@ void Tokenizer::SetBuffer(const string &buffer) // {{{
 //  if (myMode=="ll")
 //    myCompressed = frca->CompressLL(buffer);
 //  else
-    myCompressed = frca->CompressGL(buffer);
+  myCompressed = frca->CompressGL(buffer);
   delete frca;
   myPos=0;
 }; // }}}

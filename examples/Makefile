@@ -1,8 +1,8 @@
-programs = xmlparser calc showdefs slrcalc
+programs = xmlparser calc showdefs slrcalc slrparser
 version = 0.0.1-a
 compiler = g++
 ctags = ctags
-args =
+args = -std=c++0x
 libs = -ldpl
 OS_AUTO = $(shell uname -s)
 COMMENT = _
@@ -81,6 +81,9 @@ calc: $(objects) objects/calc.o include/config.hpp
 
 slrcalc: $(objects) objects/slrcalc.o include/config.hpp
 	$(compiler) objects/slrcalc.o $(objects) -o slrcalc $(args) $(libs)
+
+slrparser: $(objects) objects/slrparser.o include/config.hpp
+	$(compiler) objects/slrparser.o $(objects) -o slrparser $(args) $(libs)
 
 test_special: $(objects) objects/test_special.o include/config.hpp
 	$(compiler) objects/test_special.o $(objects) -o test_special $(args) $(libs)

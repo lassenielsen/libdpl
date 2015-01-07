@@ -34,6 +34,7 @@ parsetree::parsetree(const parsetree &rhs) // {{{
 { type_name = rhs.type_name;
   case_name = rhs.case_name;
   is_token = rhs.is_token;
+  root=rhs.root;
   content.clear();
   for (vector<parsetree*>::const_iterator sub=rhs.content.begin(); sub!=rhs.content.end(); ++sub)
     content.push_back(new parsetree(**sub));
@@ -68,15 +69,15 @@ string parsetree::ToString(bool include_cases) // {{{
   return result;
 } // }}}
 
-pair<int,int> parsetree::GetPosition() // {{{
+pair<int,int> parsetree::GetPosition() const // {{{
 {
-  if (type_name == "_ERROR")
-    return pair<int,int>(0,0);
   if (is_token)
     return pair<int,int>(root.line,root.column);
-  else if (content.size()==0)
-    return pair<int,int>(0,0);
-  else
-    return content[0]->GetPosition();
+  for (vector<parsetree*>::const_iterator it=content.begin(); it!=content.end(); ++it)
+  { pair<int,int> pos=(*it)->GetPosition();
+    if (pos!=pair<int,int>(-1,-1))
+      return pos;
+  }
+  return pair<int,int>(-1,-1);
 } // }}}
 

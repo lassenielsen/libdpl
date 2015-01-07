@@ -41,7 +41,7 @@ class parsetree // {{{
     std::string ToString(bool include_cases=false);
 
     //! GetPosition returns position (in input) of earliest token used in parsetree
-    std::pair<int,int> GetPosition();
+    std::pair<int,int> GetPosition() const;
 
     //! Type-name used in top constructor (BNF name)
     std::string type_name;

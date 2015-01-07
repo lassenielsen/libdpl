@@ -81,6 +81,10 @@ class SlrParser : public SymParser // {{{
     std::map<std::string,SymBnf> myTypes;
     std::string myInit;
 
+    //! Return index of state if present, otherwise -1
+    int FindState(const std::set<node> &state) const;
+    //! Find dest if in states, otherwise add it and return index
+    int AddState(const std::set<node> &state);
     //! List of known states (can be referenced by index)
     std::vector<std::set<node> > myStates;
     //! For each edge (state and token- or type-name) stores the action and destination (if shift) state
@@ -89,7 +93,7 @@ class SlrParser : public SymParser // {{{
     std::map<std::string,bool> mySRRules;
     //! If myRRRules[A]<myRRRules[B] then A reductions are used over B reductions
     std::map<std::string,int> myRRRules;
-};
+}; // }}}
 
 inline bool operator<(const SlrParser::node &lhs, const SlrParser::node &rhs) // {{{
 { return lhs.t<rhs.t || (lhs.t==rhs.t && lhs.c<rhs.c) || (lhs.t==rhs.t && lhs.c==rhs.c && lhs.p<rhs.p);

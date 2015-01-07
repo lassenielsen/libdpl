@@ -20,19 +20,25 @@ SlrParser::~SlrParser() // {{{
 
 parsetree *SlrParser::Parse(const string &buffer) // {{{
 {
-  GetType(myInit).AddPost("_EOF");
+  // FIXME: IF DIRTY
+  myStates.clear();
+  myTransitions.clear();
+  if (! IsType("__INit__"))
+    DefType("__INIT__ ::= ::init " + myInit);
+  GetType("__INIT__").AddPost("_EOF");
 
   FixAll();
   // Initialize buffer
   SetBuffer(buffer);
 
+
   // Create initial state
   { set<node> init_state;
-    SymBnf &init=GetType(myInit);
+    SymBnf &init=GetType("__INIT__");
     vector<string> init_cases=init.CaseNames();
     for (int i=0; i<init_cases.size(); ++i)
     { node n;
-      n.t=myInit;
+      n.t="__INIT__";
       n.c=init_cases[i];
       n.p=0;
       init_state.insert(n);
@@ -40,7 +46,13 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     EpsilonClosure(init_state);
     myStates.push_back(init_state);
   }
-
+  // Accept initial symbol
+  { action result;
+    result.sr="SHIFT";
+    result.dest=AddState(set<node>());
+    myTransitions[pair<int,string>(0,"__INIT__")]=result;
+  }
+  
 
   /* Build states dynamically
   // Build reachable states, and transitions
@@ -96,6 +108,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
       peephole.pop_back();
     }
 
+    //cout << "NEXT: " << next->ToString() << endl;
     // Perform actions from next
     action a = FindAction(state_stack.back(),next->type_name);
     if (a.sr=="REDUCE")
@@ -117,7 +130,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     }
     else
     { // Unknown action - parser error
-      if (tree_stack.size()==1 && tree_stack[0]->type_name==myInit && next->type_name=="_EOF") // Accept
+      if (tree_stack.size()==1 && tree_stack[0]->type_name=="__INIT__" && next->type_name=="_EOF") // Accept
       { delete next;
         break;
       }
@@ -144,8 +157,14 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     throw error;
   }
 
+  if (tree_stack[0]->type_name!="__INIT__" || tree_stack[0]->case_name!="init")
+    throw string("Unexpected result: ") + tree_stack[0]->type_name + "." + tree_stack[0]->case_name;
+
+  parsetree *result = new parsetree(*tree_stack[0]->content[0]);
+  DeleteVector(tree_stack);
+
   // If no error, return the found tree
-  return tree_stack.front();
+  return result;
 } // }}}
 
 void SlrParser::EpsilonClosure(set<node> &state) // {{{
@@ -249,28 +268,7 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
   else if (shift_dest.size()>0)
   { result.sr="SHIFT";
     EpsilonClosure(shift_dest);
-    // Find dest if in states, otherwise add it
-    size_t index=0;
-    for (;index<myStates.size() /*&& myStates[index]!=shift_dest*/; ++index)
-    { bool eq=true;
-      // Check myStates[index] included in shift_dest
-      for (set<node>::const_iterator s=myStates[index].begin(); eq && s!=myStates[index].end(); ++s)
-        if (shift_dest.find(*s)==shift_dest.end())
-          eq=false;
-      // Check shift_dest included in myStates[index]
-      for (set<node>::const_iterator s=shift_dest.begin(); eq && s!=shift_dest.end(); ++s)
-        if (myStates[index].find(*s)==myStates[index].end())
-          eq=false;
-      if (eq)
-        break;
-    }
-
-    if (index<myStates.size())
-      result.dest=index;
-    else
-    { myStates.push_back(shift_dest);
-      result.dest=myStates.size()-1;
-    }
+    result.dest=AddState(shift_dest);
   }
   else
   {  result.sr="EMPTY";
@@ -281,4 +279,34 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
 
   //cout << " = " << result.sr << endl;
   return result;
+} // }}}
+
+int SlrParser::FindState(const set<node> &state) const // {{{
+{
+  for (int index=0;index<myStates.size(); ++index)
+  { bool eq=true;
+    // Check myStates[index] included in shift_dest
+    for (set<node>::const_iterator s=myStates[index].begin(); eq && s!=myStates[index].end(); ++s)
+      if (state.find(*s)==state.end())
+        eq=false;
+    // Check shift_dest included in myStates[index]
+    for (set<node>::const_iterator s=state.begin(); eq && s!=state.end(); ++s)
+      if (myStates[index].find(*s)==myStates[index].end())
+        eq=false;
+    if (eq)
+      return index;
+  }
+  return -1;
+} // }}}
+
+int SlrParser::AddState(const set<node> &state) // {{{
+{
+  int index=FindState(state);
+
+  if (index>=0)
+    return index;
+  else
+  { myStates.push_back(state);
+    return myStates.size()-1;
+  }
 } // }}}

@@ -420,7 +420,17 @@ void SymParser::AddCase(const string &type_name, const string &case_name, const 
 } // }}}
 
 void SymParser::AddType(const string &type_name, const Bnf &t) // {{{
-{ if (myTypes.find(type_name)!=myTypes.end())
-    throw string("SymParser::AddType: Type ") + type_name + " already exists";
+{ map<string,SymBnf>::const_iterator pd=myTypes.find(type_name);
+  if (pd!=myTypes.end())
+  { if (pd->second.CaseNames()==t.CaseNames())
+    { bool identical=true;
+      for (vector<string>::const_iterator cn=pd->second.CaseNames().begin(); cn!=pd->second.CaseNames().end(); ++cn)
+        if (pd->second.Case(*cn)!=t.Case(*cn))
+          identical=false;
+      if (identical)
+        return;
+    }
+    throw string("SymParser::AddType: Redefinition of type ") + type_name;
+  }
   myTypes.insert(pair<string,SymBnf>(type_name,SymBnf(t)));
 } // }}}

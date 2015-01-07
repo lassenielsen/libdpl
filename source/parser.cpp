@@ -15,33 +15,50 @@ Parser::Parser() // {{{
 string readline(istream &source) // {{{
 {
   string result="";
-  for (char ch=source.get();ch != '\n' && ch != '\r'; ch=source.get())
+  for (char ch=source.get();ch != '\n' && ch != '\r' && !source.eof(); ch=source.get())
     result += ch;
-  for (char ch=source.peek(); ch=='\n' || ch=='\r'; ch=source.peek()) // Flush end of line chars
+  for (char ch=source.peek(); (ch=='\n' || ch=='\r') && !source.eof(); ch=source.peek()) // Flush end of line chars
     source.get();
+  return result;
+} // }}}
+
+string nextline(istream &source) // {{{
+{
+  string result;
+  while ((result.size()==0 || result[0] == '#') && !source.eof())
+    result=readline(source);
   return result;
 } // }}}
 
 void Parser::LoadFile(const string &filename) // {{{
 {
   ifstream fin(filename.c_str());
-  while (!fin.eof())
+  string line=nextline(fin);
+  while (line.size()>0 || !fin.eof())
   {
-    string line=readline(fin);
-    if (line.size()==0 || line[0] == '#') // comment or empty line
-      continue;
-    else if (line.find("::=") != string::npos) // type definition
-    {
-      if (!DefType(line)) // Bad BNF
-        throw string("Parser::Parser: BNFType error in file ") + filename + ", line: " + line;
+    string def=line;
+    line=nextline(fin);
+    while (line.find(":=")==string::npos && !fin.eof())
+    { def += "\n" + line;
+      line=nextline(fin);
     }
-    else if (line.find(":=") != string::npos) // token definition
+    if (fin.eof() && line.find(":=")==string::npos)
+    { def += "\n" + line;
+      line ="";
+    }
+
+    if (def.find("::=") != string::npos) // type definition
     {
-      if (!DefToken(line)) // Bad Token def
-        throw string("Parser::Parser: BNFToken error in file ") + filename + ", line: " + line;
+      if (!DefType(def)) // Bad BNF
+        throw string("Parser::LoadFile: BNFType error in file ") + filename + ", def: " + def;
+    }
+    else if (def.find(":=") != string::npos) // token definition
+    {
+      if (!DefToken(def)) // Bad Token def
+        throw string("Parser::LoadFile: BNFToken error in file ") + filename + ", def: " + def;
     }
     else
-      throw string("Parser::Parser: Ignoring line: ") + line + " in file: " + filename;
+      throw string("Parser::LoadFile: Unknown deftype in file: ") + filename + ", def: " + def;
   }
 }; // }}}
 
