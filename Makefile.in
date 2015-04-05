@@ -153,6 +153,7 @@ deb: $(libname)$(libversion)
 	echo "Description: Library for quickly writing parsers."      >> debs/lib$(name)_$(version)_i386/DEBIAN/control
 	echo "#!/bin/sh"                                               > debs/lib$(name)_$(version)_i386/DEBIAN/postinst
 	echo "ldconfig -n /usr/lib"                                   >> debs/lib$(name)_$(version)_i386/DEBIAN/postinst
+	echo "ln -f -s /usr/lib/$(libname)$(libversion) /usr/lib/$(libname)" >> debs/lib$(name)_$(version)_i386/DEBIAN/postinst
 	chmod a+x debs/lib$(name)_$(version)_i386/DEBIAN/postinst
 	echo "#!/bin/sh"                                               > debs/lib$(name)_$(version)_i386/DEBIAN/postrm
 	echo "ldconfig -n /usr/lib"                                   >> debs/lib$(name)_$(version)_i386/DEBIAN/postrm
