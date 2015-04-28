@@ -24,6 +24,7 @@ with the following commands
  * `make config`
  * `make build`
  * `sudo make install`
+
 There are example programs using the library in the examples folder.
 Look at the example programs sorce code to see how the library is used.
 The examplle programs are compiled by going to the examples folder and typing
