@@ -1,7 +1,7 @@
 # A small ttd (Token- and Type-Definitions) file defining the mathematical regular expression notation
 
 # TOKENS
-lit := "[^()+*\\]+\\[^]"
+lit := "\\[^]+[^()+*\\]"
 (   := "\("
 )   := "\)"
 [   := "\["
@@ -12,8 +12,17 @@ or   := "\|"
 *   := "\*"
 
 # TYPES
-re  ::= ::sum re2 or re | ::nl re2
-re2 ::= ::seq re3 re2  | ::nl re3
-re3 ::= ::rep re3 *    | ::nl re4
-re4 ::= ::unit ( ) | ::lit lit | ::int [ int ] | ::rint [ ^ int ] | ::par ( re )
-int ::= ::empty | ::lit lit | ::int lit - lit int
+re  ::= ::sum re2 ::lhs or re ::rhs
+      | ::lvl re2 ::re
+re2 ::= ::seq re3 ::lhs re2 ::rhs
+      | ::lvl re3 ::re
+re3 ::= ::rep re3 ::re *
+      | ::lvl re4 ::re
+re4 ::= ::unit ( )
+      | ::lit lit ::lit
+      | ::int [ int ::int ]
+      | ::rint [ ^ int ::int ]
+      | ::par ( re ::re )
+int ::= ::empty
+      | ::lit lit ::lit
+      | ::int lit ::from - lit ::to int ::int

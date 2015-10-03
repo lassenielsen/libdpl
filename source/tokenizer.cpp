@@ -29,6 +29,17 @@ Tokenizer::Tokenizer(string mode) // {{{
   myDirty=false;
 } // }}}
 
+Tokenizer::Tokenizer(const Tokenizer &init) // {{{
+: myPos(init.myPos)
+, myMode(init.myMode)
+, myCurrentLine(init.myCurrentLine)
+, myCurrentColumn(init.myCurrentColumn)
+, myTokenDefs(init.myTokenDefs)
+{
+  myStar=NULL;
+  myDirty=true;
+} // }}}
+
 Tokenizer::~Tokenizer() // {{{
 { if (myStar!=NULL)
     delete myStar;

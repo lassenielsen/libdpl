@@ -5,7 +5,6 @@
 #include <vector>
 #include <set>
 #include <map>
-#include <map>
 
 namespace dpl
 {
@@ -17,9 +16,32 @@ namespace dpl
  *
  *  name ::= case1 | case2 | case3 ...
  *
- *  where each cases is in one of the forms
- *  \li ::case_name name1 name2 ...
- *  \li name1 name2 ...
+ *  example case definitions are listed below
+ *  \li exp + exp
+ *  \li ::exp_plus exp + exp
+ *  \li ::exp_plus exp::lhs + exp::rhs
+ *  \li ::exp_par LPAR exp::content RPAR ::-> :"::content"
+ *  \li ::exp_sum exp::from +...+ exp::to ::-> :"(::to * (::to-1))/2 - ((::from)*((::from)-1))/2"
+ *
+ *  Defining the BNF language with a BNF can be done as follows:
+ *  := "[ \t\r\n][ \t\r\n]*"         # Ignore whitespace
+ *  DDEF := "::="                    # Use the name DDEF for the ::= token
+ *  CSEP := "\|"                     # Use the name CSEP for the | case seperator
+ *  tag := "::[a-zA-Z0-9_]*"         # Tag names start with ::
+ *  string := ":\"(\\.|[^\"])*\"     # String literals are preceded by :
+ *  SDEF := ":->"                    # Use the name SDEF for the token :-> used for syntactic sugar
+ *  id := "[^:| \t\r\n][^| \t\r\n]*" # Everything else is tokenized as identifiers
+ *
+ *  bnf ::= id DDEF cases            # A BNF starts with a name followed by ::= and the cases
+ *  cases ::= case                   # Cases is either a single case
+ *          | case CSEP cases        # or more cases seperated by CSEP
+ *  case ::= items                   # A case is a sequence of items
+ *         | tag items               # A case can include a case name (tag)
+ *         | items SDEF string       # A case can also be a syntactic sugar definition
+ *  items ::= item items             # Items either starts with an item
+ *          |                        # or an empty sequence
+ *  item ::= id tag
+ *         | id
  */
 // }}}
 class Bnf // {{{
@@ -50,10 +72,22 @@ class Bnf // {{{
     void AddCase(const std::string &name, const std::vector<std::string> &def);
     // DOCUMENTATION {{{
     //! Case returns the case definition under the specified case name.
-    /*! Returns ourVoid if case name is undefined.
+    /*! Returns ourVoidCase if case name is undefined.
      */
     // }}}
     const std::vector<std::string> &Case(const std::string &name) const;
+    // DOCUMENTATION {{{
+    //! Tags returns the tags defined for the given case name.
+    /*! Returns ourVoidTags if case name is undefined.
+     */
+    // }}}
+    const std::map<std::string,size_t> &Tags(const std::string &name) const;
+    // DOCUMENTATION {{{
+    //! Sugar returns the syntactic sugar string definition for the given case name.
+    /*! Returns ourVoidTags if case name is undefined.
+     */
+    // }}}
+    const std::string &Sugar(const std::string &name) const;
     //! CaseNames returns a list names of the defined cases
     std::vector<std::string> CaseNames() const;
 
@@ -62,12 +96,25 @@ class Bnf // {{{
     //! myCases is a map from case name to the definition the case by a vector of token and type names.
     std::map<std::string,std::vector<std::string> > myCases;
     // DOCUMENTATION {{{
+    /*! For each production myTags contains a map of tag names to index,
+     * enabeling the use of tag names.
+     */
+    // }}}
+    std::map<std::string,std::map<std::string,size_t> > myTags;
+    // DOCUMENTATION {{{
+    /*! mySugar contains a set of suntactic sugar definitions.
+     */
+    // }}}
+    std::map<std::string,std::string> mySugar;
+    // DOCUMENTATION {{{
     /*! ourVoid is a static empty case definition used to return a case
      * when invalid specification (such as undefined case name) is
      * requested.
      */
     // }}}
-    static std::vector<std::string> ourVoid;
+    static const std::vector<std::string> ourVoidCase;
+    static const std::map<std::string,size_t> ourVoidTags;
+    static const std::string ourVoidSugar;
 }; // }}}
 
 }

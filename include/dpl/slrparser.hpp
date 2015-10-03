@@ -30,7 +30,7 @@ class SlrParser : public SymParser // {{{
 
     // DOCUMENTATION {{{
     //! Represents a NFA node.
-    /*!This is specified by position in a specific case in a specific type.
+    /*! This is specified by position in a specific case in a specific type.
      */
     // }}}
     struct node
@@ -64,10 +64,11 @@ class SlrParser : public SymParser // {{{
      */
     // }}}
     struct action
-    { std::string sr; //!< SHIFT, REDUCE, ACCEPT or EMPTY
+    { std::string sr; //!< SHIFT, REDUCE, ACCEPT, SUGAR or EMPTY
       int dest;       //!< dest state if shift
       std::string t;  //!< type if reduce
       std::string c;  //!< case if reduce
+      //std::vector<token> s; //!< sugar tokens
     };
 
     //! Sets the initial (main) type. Parsetree should have this type as the root constructor.
@@ -78,7 +79,7 @@ class SlrParser : public SymParser // {{{
     //! Lookup action, and calculate and stores transition if it is not found
     action FindAction(int state, const std::string &symbol);
     //! Map from type name to definition
-    std::map<std::string,SymBnf> myTypes;
+    //std::map<std::string,SymBnf> myTypes;
     std::string myInit;
 
     //! Return index of state if present, otherwise -1

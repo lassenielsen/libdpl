@@ -55,6 +55,7 @@ class Tokenizer // {{{
      */
     // }}}
     Tokenizer(std::string mode="gl");
+    Tokenizer(const Tokenizer &init);
     virtual ~Tokenizer();
 
     // DOCUMENATAION {{{

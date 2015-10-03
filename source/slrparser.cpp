@@ -23,7 +23,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
   // FIXME: IF DIRTY
   myStates.clear();
   myTransitions.clear();
-  if (! IsType("__INit__"))
+  if (! IsType("__INIT__"))
     DefType("__INIT__ ::= ::init " + myInit);
   GetType("__INIT__").AddPost("_EOF");
 
@@ -111,17 +111,47 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     //cout << "NEXT: " << next->ToString() << endl;
     // Perform actions from next
     action a = FindAction(state_stack.back(),next->type_name);
+
     if (a.sr=="REDUCE")
-    { // Perform reduce
-      SymBnf &red_bnf = GetType(a.t);
+    { SymBnf &red_bnf = GetType(a.t);
       vector<string> red_prd = red_bnf.Case(a.c);
       vector<parsetree*> red_content;
       red_content.insert(red_content.end(),tree_stack.end()-red_prd.size(),tree_stack.end());
       tree_stack.erase(tree_stack.end()-red_prd.size(),tree_stack.end());
       state_stack.erase(state_stack.end()-red_prd.size(),state_stack.end());
-      parsetree *new_tree=new parsetree(a.t, a.c, red_content);
       peephole.push_back(next);
-      peephole.push_back(new_tree);
+     
+      string sugar=myTypes[a.t].Sugar(a.c);
+      cout << "The suger def for tag: " << myTypes[a.t].GetName() << ":" << a.c << " is " << sugar << endl;
+      if (sugar!="")
+      { Tokenizer *sugarTokenizer=new Tokenizer(*this);
+        sugarTokenizer->DefToken("::tag","::[a-z][a-z]*");
+        sugarTokenizer->SetBuffer(sugar);
+        vector<token> sugarTokens;
+        sugarTokenizer->Tokenize(sugarTokens);
+        delete sugarTokenizer;
+        for (int i=sugarTokens.size()-1; i>=0; --i)
+        { if (sugarTokens[i].name=="_EOF")
+            continue;
+          if (sugarTokens[i].name=="::tag")
+          { map<string,size_t>::const_iterator tag=myTypes[a.t].Tags(a.c).find(sugarTokens[i].content.substr(2));
+            if (tag==myTypes[a.t].Tags(a.c).end())
+            { pair<int,int> pos=next->GetPosition();
+              throw string("Unknown tag ") + sugarTokens[i].content + " at current location: " + int2string(pos.first) + ":" + int2string(pos.second);
+            }
+            cout << "Sugar, using tag " << tag->first << " at index " << tag->second << " vector size: " << red_content.size() << endl;
+            peephole.push_back(new parsetree(*red_content[tag->second]));
+          }
+          else
+            peephole.push_back(new parsetree(sugarTokens[i]));
+        }
+        DeleteVector(red_content);
+      }
+      else
+      { // Perform reduce
+        parsetree *new_tree=new parsetree(a.t, a.c, red_content);
+        peephole.push_back(new_tree);
+      }
     }
     else if (a.sr=="SHIFT") {
       // Move to peephole, and update stack
