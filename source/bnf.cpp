@@ -69,13 +69,7 @@ Bnf::Bnf(const string &bnf_string) // {{{
     else if (t.name == ":->")
     { t = bnf_tokenizer.PopToken();
       if (t.name=="string")
-      {
-        //myCases[cname]=c;
-        cout << "Setting sugar for " << myName << ":" << cname << " to " << t.content.substr(2,t.content.size()-3) << endl;
         mySugar[cname]=t.content.substr(2,t.content.size()-3);
-        //cname="";
-        //c.clear();
-      }
       else // Tokenizer error
            // hack: remove all cases
         throw string("Bnf constructor: Expected sugar-string at: ") + t.content + " in: " + bnf_string;

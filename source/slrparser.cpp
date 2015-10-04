@@ -122,7 +122,6 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
       peephole.push_back(next);
      
       string sugar=myTypes[a.t].Sugar(a.c);
-      cout << "The suger def for tag: " << myTypes[a.t].GetName() << ":" << a.c << " is " << sugar << endl;
       if (sugar!="")
       { Tokenizer *sugarTokenizer=new Tokenizer(*this);
         sugarTokenizer->DefToken("::tag","::[a-z][a-z]*");
@@ -139,7 +138,6 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
             { pair<int,int> pos=next->GetPosition();
               throw string("Unknown tag ") + sugarTokens[i].content + " at current location: " + int2string(pos.first) + ":" + int2string(pos.second);
             }
-            cout << "Sugar, using tag " << tag->first << " at index " << tag->second << " vector size: " << red_content.size() << endl;
             peephole.push_back(new parsetree(*red_content[tag->second]));
           }
           else
