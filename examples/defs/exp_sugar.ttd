@@ -22,10 +22,7 @@ exp2 ::= ::mul exp3 ::lhs * exp2 ::rhs
        | ::div exp3 ::lhs / exp2 ::rhs
        | ::mod exp3 ::lhs % exp2 ::rhs :-> :"( ::lhs - ( ( ::lhs / ::rhs ) * ::rhs ) )"
        | ::lvl exp3 ::exp
-exp3 ::= ::neg - exp3 ::exp
+exp3 ::= ::neg - exp3 ::exp :-> :"( 0 - ::exp )"
        | ::lvl exp4 ::exp
 exp4 ::= ::num num ::val
-       | ::cal id ::name ( exps ::args )
        | ::par ( exp ::exp )
-exps ::= exps2 |
-exps2 ::= exp | exp , exps2
