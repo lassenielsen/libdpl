@@ -42,7 +42,7 @@ parsetree::~parsetree() // {{{
   }
 } // }}}
 
-string parsetree::ToString(bool include_cases) // {{{
+string parsetree::ToString(bool include_cases) const // {{{
 {
   if (myType == "_ERROR")
   {
@@ -53,7 +53,7 @@ string parsetree::ToString(bool include_cases) // {{{
     result += "." + myCase;
   if (myCase!="_TOKEN" && myContent.size()>0)
   { result += "( ";
-    for (vector<parsetree*>::iterator it=myContent.begin(); it!=myContent.end(); ++it)
+    for (vector<parsetree*>::const_iterator it=myContent.begin(); it!=myContent.end(); ++it)
     {
       result += (*it)->ToString(include_cases);
       result += " ";
