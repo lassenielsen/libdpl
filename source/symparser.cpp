@@ -37,15 +37,15 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
   {
     // Move token to peephole
     token post_token = PopToken();
-    if (post_token.name == "_ERROR") // Tokenizer error {{{
+    if (post_token.Name() == "_ERROR") // Tokenizer error {{{
     {
       SetBuffer("");
       string msg= "Tokenizer error: ";
-      msg += post_token.content;
+      msg += post_token.Content();
       parsetree *result = new parsetree(msg);
       return result;
     } // }}}
-    else if (post_token.name == "_EOF") // No more tokens {{{
+    else if (post_token.Name() == "_EOF") // No more tokens {{{
     {
       bool reduced=true;
       while (reduced)
@@ -60,7 +60,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
               vector<parsetree*> buffer;
               buffer.clear();
               vector<string> cpy_case(it_type->second.Case(*case_name));
-              if (make_reduction(peephole, *case_name, cpy_case, it_type->second, buffer, post_token.name, false)) // do reduction if possible
+              if (make_reduction(peephole, *case_name, cpy_case, it_type->second, buffer, post_token.Name(), false)) // do reduction if possible
                 reduced=true;
             }
         }
@@ -74,7 +74,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
         reduced = false;
         for (map<string,SymBnf>::iterator it_type=myTypes.begin();it_type!=myTypes.end() && !reduced;++it_type)
         {
-          if (it_type->second.HasPost(post_token.name)) // Preliminary test
+          if (it_type->second.HasPost(post_token.Name())) // Preliminary test
           {
             vector<string> cases=it_type->second.CaseNames();
             for (vector<string>::iterator case_name=cases.begin(); case_name!=cases.end() && !reduced; ++case_name)
@@ -84,7 +84,7 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
                 vector<parsetree*> buffer;
                 buffer.clear();
                 vector<string> case_cpy(it_type->second.Case(*case_name));
-                if (make_reduction(peephole, *case_name, case_cpy, it_type->second, buffer, post_token.name, false)) // do reduction if possible
+                if (make_reduction(peephole, *case_name, case_cpy, it_type->second, buffer, post_token.Name(), false)) // do reduction if possible
                   reduced=true;
               }
             }
@@ -103,10 +103,10 @@ parsetree *SymParser::Parse(const string &buffer) // {{{
     for (vector<parsetree*>::iterator it = peephole.begin(); it != peephole.end(); ++it)
     {
       error+= " ";
-      error+= (*it)->type_name;
-      if ((*it)->case_name != "_TOKEN")
+      error+= (*it)->Type();
+      if ((*it)->Case() != "_TOKEN")
       { error+= ".";
-        error+= (*it)->case_name;
+        error+= (*it)->Case();
       }
       delete *it;
     }
@@ -153,7 +153,8 @@ void SymParser::FixNullable() // {{{
         }
         if (nullable_case)
         {
-          parsetree *void_rep=new parsetree(it_type->second.GetName(),*case_name,void_seq);
+          map<string,size_t> tags=it_type->second.Tags(*case_name);
+          parsetree *void_rep=new parsetree(it_type->second.GetName(),*case_name,void_seq,tags);
           it_type->second.SetVoidRep(void_rep);
           updated = true;
         }
@@ -362,7 +363,7 @@ bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_
     bool post_test=post=="_EOF";
     string pre="_BOF";
     if (!pre_test)
-      pre=peephole.back()->type_name;
+      pre=peephole.back()->Type();
 
     if ((pre_test && post_test) ||
         (pre_test && !post_test && this_type.HasPost(post)) ||
@@ -371,7 +372,8 @@ bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_
     {
       vector<parsetree*> revbuffer(buffer.rbegin(),buffer.rend());
       buffer.clear();
-      parsetree *newtree = new parsetree(this_type.GetName(),case_name,revbuffer);
+      map<string,size_t> tags=this_type.Tags(case_name);
+      parsetree *newtree = new parsetree(this_type.GetName(),case_name,revbuffer,tags);
       peephole.push_back(newtree);
       return true;
     }
@@ -386,7 +388,7 @@ bool SymParser::make_reduction(vector<parsetree*> &peephole, const string &case_
   case_def.pop_back();
   parsetree *peep = peephole.back();
   peephole.pop_back();
-  if (arg == peep->type_name) // Last elements match
+  if (arg == peep->Type()) // Last elements match
   {
     buffer.push_back(peep);
     if (make_reduction(peephole, case_name, case_def, this_type, buffer, post, true))

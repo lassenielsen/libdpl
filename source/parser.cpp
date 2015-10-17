@@ -33,6 +33,18 @@ string nextline(istream &source) // {{{
 void Parser::LoadFile(const string &filename) // {{{
 {
   ifstream fin(filename.c_str());
+  Load(fin);
+}; // }}}
+
+void Parser::Load(const string &defs) // {{{
+{
+  stringstream ss;
+  ss << defs;
+  Load(ss);
+}; // }}}
+
+void Parser::Load(istream &fin) // {{{
+{
   string line=nextline(fin);
   while (line.size()>0 || !fin.eof())
   {
@@ -50,15 +62,15 @@ void Parser::LoadFile(const string &filename) // {{{
     if (def.find("::=") != string::npos) // type definition
     {
       if (!DefType(def)) // Bad BNF
-        throw string("Parser::LoadFile: BNFType error in file ") + filename + ", def: " + def;
+        throw string("Parser::LoadFile: BNFType error in def: ") + def;
     }
     else if (def.find(":=") != string::npos) // token definition
     {
       if (!DefToken(def)) // Bad Token def
-        throw string("Parser::LoadFile: BNFToken error in file ") + filename + ", def: " + def;
+        throw string("Parser::LoadFile: BNFToken error in def: ") + def;
     }
     else
-      throw string("Parser::LoadFile: Unknown deftype in file: ") + filename + ", def: " + def;
+      throw string("Parser::LoadFile: Unknown deftype in def: ") + def;
   }
 }; // }}}
 
@@ -82,14 +94,14 @@ bool Parser::DefType(const string &bnf) // {{{
 
 void extract_tokens(const parsetree &tree, vector<token> &dest) // {{{
 {
-  if (tree.is_token)
+  if (tree.IsToken())
   { // add the token
-    dest.push_back(tree.root);
+    dest.push_back(tree.Token());
   }
   else
   { // add the tokens from the subtrees
-    for (vector<parsetree*>::const_iterator it=tree.content.begin(); it!=tree.content.end(); ++it)
-      extract_tokens(**it,dest);
+    for (size_t i=0; i<tree.Children(); ++i)
+      extract_tokens(*tree.Child(i),dest);
   }
   return;
 } // }}}

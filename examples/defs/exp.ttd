@@ -14,11 +14,11 @@ id  := "[a-zA-Z][a-zA-Z0-9]*"
 ,   := ","
 
 # TYPES
-exp ::= ::add exp2 ::lhs + exp ::rhs
-      | ::sub exp2 ::lhs - exp ::rhs
+exp ::= ::add exp ::lhs + exp2 ::rhs
+      | ::sub exp ::lhs - exp2 ::rhs
       | ::lvl exp2 ::exp
-exp2 ::= ::mul exp3 ::lhs * exp2 ::rhs
-       | ::div exp3 ::lhs / exp2 ::rhs
+exp2 ::= ::mul exp2 ::lhs * exp3 ::rhs
+       | ::div exp2 ::lhs / exp3 ::rhs
        | ::lvl exp3 ::exp
 exp3 ::= ::neg - exp3 ::exp
        | ::lvl exp4 ::exp

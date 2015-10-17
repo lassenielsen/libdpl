@@ -20,11 +20,20 @@ class token // {{{
 {
   public:
     token(std::string name="", std::string content="", std::string pre_content=" ", int line=0, int column=0);
-    std::string name;
-    std::string content;
-    std::string pre_content;
-    int line;
-    int column;
+
+    const std::string &Name() const {return myName;}
+    const std::string &Content() const {return myContent;}
+    const std::string &Prelude() const {return myPrelude;}
+    std::string Position() const;
+    int Line() const {return myLine;}
+    int Column () const {return myColumn;}
+
+  private:
+    std::string myName;
+    std::string myContent;
+    std::string myPrelude;
+    int myLine;
+    int myColumn;
 }; // }}}
 
 // DOCUMENATAION {{{

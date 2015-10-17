@@ -38,6 +38,24 @@ class Parser : public Tokenizer // {{{
     void LoadFile(const std::string &filename);
 
     // DOCUMENTATION {{{
+    //! Create parser and tokenizer from definitions in string
+    /*! String uses syntax
+     *  <tokenname> := "<tokendef>"
+     *  <typename> ::= <case1> | <case2> ...
+     */
+    // }}}
+    void Load(const std::string &defs);
+
+    // DOCUMENTATION {{{
+    //! Create parser and tokenizer from definitions in stream
+    /*! String uses syntax
+     *  <tokenname> := "<tokendef>"
+     *  <typename> ::= <case1> | <case2> ...
+     */
+    // }}}
+    void Load(std::istream &defs);
+
+    // DOCUMENTATION {{{
     //! DefType takes a string holding a definition in Backus-Nauer-Form, and adds the definition it describes.
     /*! Note that BNF's does not give any way to define case names.
      *  This functionality has been added to the syntax, by disallowing token-

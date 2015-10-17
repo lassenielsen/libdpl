@@ -15,21 +15,52 @@ int a2i(const string &a) // {{{
 
 int calc(const parsetree *tree) // {{{
 { // Do the actual calculation
-  if (tree->type_name == "number") return a2i(tree->root.content);
-  if (tree->type_name == "eqnm" && tree->case_name == "case1") return a2i(tree->content[0]->root.content);
-  if (tree->type_name == "eqnm" && tree->case_name == "case2") return calc(tree->content[1]);
-  if (tree->type_name == "eqnm" && tree->case_name == "case3") return calc(tree->content[0]) * calc(tree->content[2]);
-  if (tree->type_name == "eqnm" && tree->case_name == "case4") return calc(tree->content[0]) / calc(tree->content[2]);
-  if (tree->type_name == "eqnm" && tree->case_name == "case5") return -calc(tree->content[1]);
-  if (tree->case_name == "case1") return calc(tree->content[0]) + calc(tree->content[2]);
-  if (tree->case_name == "case2") return calc(tree->content[0]) - calc(tree->content[2]);
-  if (tree->case_name == "case3") return calc(tree->content[0]);
-  cout << "Calc error unexpected case: " << tree->type_name << "." << tree->case_name << endl;
+  if (tree->Type() == "num") return a2i(tree->Token().Content());
+  if (tree->Case() == "add") return calc(tree->Child("lhs")) + calc(tree->Child("rhs"));
+  if (tree->Case() == "sub") return calc(tree->Child("lhs")) - calc(tree->Child("rhs"));
+  if (tree->Case() == "mul") return calc(tree->Child("lhs")) * calc(tree->Child("rhs"));
+  if (tree->Case() == "div") return calc(tree->Child("lhs")) / calc(tree->Child("rhs"));
+  if (tree->Case() == "neg") return -calc(tree->Child("exp"));
+  if (tree->Case() == "num") return a2i(tree->Child("val")->Token().Content());
+  if (tree->Case() == "par") return calc(tree->Child("exp"));
+  if (tree->Case() == "lvl") return calc(tree->Child("exp"));
+  cout << "Calc error unexpected case: " << tree->TypeCase() << endl;
   return 0;
 } // }}}
 
+// BNFs {{{
+const string bnf_exp = "\n\
+# A small ttd (Token- and Type-Definitions) file defining a sequence of pairs\n\
+\n\
+# TOKENS\n\
+    := \"[ \\n\\r\\t][ \\n\\r\\t]*\"\n\
+num := \"[0-9][0-9]*\"\n\
+id  := \"[a-zA-Z][a-zA-Z0-9]*\"\n\
+~   := \"~\"\n\
+(   := \"\\(\"\n\
+)   := \"\\)\"\n\
++   := \"\\+\"\n\
+-   := \"\\-\"\n\
+*   := \"\\*\"\n\
+/   := \"/\"\n\
+,   := \",\"\n\
+\n\
+# TYPES\n\
+exp ::= ::add exp ::lhs + exp2 ::rhs\n\
+      | ::sub exp ::lhs - exp2 ::rhs\n\
+      | ::lvl exp2 ::exp\n\
+exp2 ::= ::mul exp2 ::lhs * exp3 ::rhs\n\
+       | ::div exp2 ::lhs / exp3 ::rhs\n\
+       | ::lvl exp3 ::exp\n\
+exp3 ::= ::neg ~ exp3 ::exp\n\
+       | ::lvl exp4 ::exp\n\
+exp4 ::= ::num num ::val\n\
+       | ::par ( exp ::exp )\n\
+"; // }}}
+
 int main(int argc, char **argv) // {{{
 { // Main program
+  try {
   if (argc<2)
   { // check for argument
     cout << "Syntax: calc \"<expression>\"" << endl;
@@ -38,23 +69,17 @@ int main(int argc, char **argv) // {{{
 
   string exp = argv[1]; // Copy argument
   SymParser parser; // Define parser
-  parser.DefToken("","[ \t\r\n][ \t\r\n]*");
-  parser.DefGeneralToken("number", "0123456789");
-  parser.DefKeywordToken("(");
-  parser.DefKeywordToken(")");
-  parser.DefKeywordToken("+");
-  parser.DefKeywordToken("-");
-  parser.DefKeywordToken("~");
-  parser.DefKeywordToken("*");
-  parser.DefKeywordToken("/");
-
-  parser.DefType("eqn ::= eqn + eqn | eqn - eqn | eqnm");
-  parser.DefType("eqnm ::= number | ( eqn ) | eqnm * eqnm | eqnm / eqnm | ~ eqnm");
+  parser.Load(bnf_exp);
   
   parsetree *tree=parser.Parse(exp); // Parse argument
   // Calculate and print result
   cout << parser.Unparse(*tree) << " = " << calc(tree) << endl;
   // Clean up
   delete tree;
+  }
+  catch (string &msg)
+  { cerr << "Error: " << msg << endl;
+    return 1;
+  }
   return 0;
 } // }}}

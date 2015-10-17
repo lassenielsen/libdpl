@@ -88,11 +88,11 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     if (peephole.size()==0)
     { // Receive token from Tokenizer
       token post_token = PopToken();
-      if (post_token.name == "_ERROR") // Tokenizer error {{{
+      if (post_token.Name() == "_ERROR") // Tokenizer error {{{
       {
         SetBuffer("");
         string msg= "Tokenizer error: ";
-        msg += post_token.content;
+        msg += post_token.Content();
         // Clean up
         DeleteVector(peephole);
         DeleteVector(tree_stack);
@@ -110,7 +110,7 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
 
     //cout << "NEXT: " << next->ToString() << endl;
     // Perform actions from next
-    action a = FindAction(state_stack.back(),next->type_name);
+    action a = FindAction(state_stack.back(),next->Type());
 
     if (a.sr=="REDUCE")
     { SymBnf &red_bnf = GetType(a.t);
@@ -130,13 +130,12 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
         sugarTokenizer->Tokenize(sugarTokens);
         delete sugarTokenizer;
         for (int i=sugarTokens.size()-1; i>=0; --i)
-        { if (sugarTokens[i].name=="_EOF")
+        { if (sugarTokens[i].Name()=="_EOF")
             continue;
-          if (sugarTokens[i].name=="::tag")
-          { map<string,size_t>::const_iterator tag=myTypes[a.t].Tags(a.c).find(sugarTokens[i].content.substr(2));
+          if (sugarTokens[i].Name()=="::tag")
+          { map<string,size_t>::const_iterator tag=myTypes[a.t].Tags(a.c).find(sugarTokens[i].Content().substr(2));
             if (tag==myTypes[a.t].Tags(a.c).end())
-            { pair<int,int> pos=next->GetPosition();
-              throw string("Unknown tag ") + sugarTokens[i].content + " at current location: " + int2string(pos.first) + ":" + int2string(pos.second);
+            { throw string("Unknown tag ") + sugarTokens[i].Content() + " at current location: " + next->Position();
             }
             peephole.push_back(new parsetree(*red_content[tag->second]));
           }
@@ -147,7 +146,8 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
       }
       else
       { // Perform reduce
-        parsetree *new_tree=new parsetree(a.t, a.c, red_content);
+        map<string,size_t> tags=myTypes[a.t].Tags(a.c);
+        parsetree *new_tree=new parsetree(a.t, a.c, red_content,tags);
         peephole.push_back(new_tree);
       }
     }
@@ -158,13 +158,12 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     }
     else
     { // Unknown action - parser error
-      if (tree_stack.size()==1 && tree_stack[0]->type_name=="__INIT__" && next->type_name=="_EOF") // Accept
+      if (tree_stack.size()==1 && tree_stack[0]->Type()=="__INIT__" && next->Type()=="_EOF") // Accept
       { delete next;
         break;
       }
       else
-      { pair<int,int> pos=next->GetPosition();
-        throw string("next=") + next->type_name + " is not accepted at current location: " + int2string(pos.first) + ":" + int2string(pos.second);
+      { throw string("next=") + next->Type() + " is not accepted at current location: " + next->Position();
       }
     }
   }
@@ -175,20 +174,20 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
     for (vector<parsetree*>::iterator it = tree_stack.begin(); it != tree_stack.end(); ++it)
     {
       error+= " ";
-      error+= (*it)->type_name;
-      if ((*it)->case_name != "_TOKEN")
+      error+= (*it)->Type();
+      if ((*it)->Case() != "_TOKEN")
       { error+= ".";
-        error+= (*it)->case_name;
+        error+= (*it)->Case();
       }
       delete *it;
     }
     throw error;
   }
 
-  if (tree_stack[0]->type_name!="__INIT__" || tree_stack[0]->case_name!="init")
-    throw string("Unexpected result: ") + tree_stack[0]->type_name + "." + tree_stack[0]->case_name;
+  if (tree_stack[0]->Type()!="__INIT__" || tree_stack[0]->Case()!="init")
+    throw string("Unexpected result: ") + tree_stack[0]->Type() + "." + tree_stack[0]->Case();
 
-  parsetree *result = new parsetree(*tree_stack[0]->content[0]);
+  parsetree *result = new parsetree(*tree_stack[0]->Child(0));
   DeleteVector(tree_stack);
 
   // If no error, return the found tree

@@ -1,5 +1,6 @@
 #include <dpl/tokenizer.hpp>
 #include <iostream>
+#include <sstream>
 #include <typeinfo>
 #include <rcp/frca.hpp>
 
@@ -9,12 +10,18 @@ using namespace dpl;
 
 // token methods
 token::token(string name, string content, string pre_content, int line, int column) // {{{
-: name(name),
-  content(content),
-  pre_content(pre_content),
-  line(line),
-  column(column)
+: myName(name),
+  myContent(content),
+  myPrelude(pre_content),
+  myLine(line),
+  myColumn(column)
 {
+} // }}}
+
+string token::Position() const // {{{
+{ stringstream ss;
+  ss << Line() << ":" << Column();
+  return ss.str();
 } // }}}
 
 // Tokenizer methods
@@ -326,8 +333,8 @@ string Tokenizer::Serialize(const vector<token> &source) // {{{
   string result="";
   for (int index=0; index<source.size(); ++index)
   {
-    result += source[index].pre_content;
-    result += source[index].content;
+    result += source[index].Prelude();
+    result += source[index].Content();
   }
   return result;
 } // }}}

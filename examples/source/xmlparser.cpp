@@ -7,9 +7,9 @@ using namespace dpl;
 using namespace std;
 
 void print_equals(bool first, int indent, const parsetree *tree, ostream &out) // {{{
-{ if (tree->case_name=="none")
+{ if (tree->Case()=="none")
     ;
-  else if (tree->case_name=="some") // id eq string equals
+  else if (tree->Case()=="some") // id eq string equals
   { if (first)
       out << " ";
     else
@@ -17,40 +17,38 @@ void print_equals(bool first, int indent, const parsetree *tree, ostream &out) /
       for (int i=0; i<indent; ++i)
         out << " ";
     }
-    out << tree->content[0]->root.content;
+    out << tree->Child(0)->Token().Content();
     out << " = ";
-    out << tree->content[2]->root.content;
-    print_equals(false,indent,tree->content[3],out);
+    out << tree->Child(2)->Token().Content();
+    print_equals(false,indent,tree->Child(3),out);
   }
   else
-    throw string("Unknown equals case: ") + tree->case_name;
+    throw string("Unknown equals case: ") + tree->Case();
 } // }}}
 void print_tree(bool first, int indent, const parsetree *tree, ostream &out) // {{{
-{ if (tree->case_name=="none")
+{ if (tree->Case()=="none")
     ;
-  else if (tree->case_name=="some") // < id equals > tree < / id > tree
+  else if (tree->Case()=="some") // < id equals > tree < / id > tree
   { if (!first)
       out << endl;
     for (int i=0; i<indent; ++i)
       out << " ";
-    out << "<" << tree->content[1]->root.content;
-    print_equals(true,indent+2+tree->content[1]->root.content.size(),tree->content[2],out);
+    out << "<" << tree->Child(1)->Token().Content();
+    print_equals(true,indent+2+tree->Child(1)->Token().Content().size(),tree->Child(2),out);
     out << ">";
-    print_tree(false,indent+2,tree->content[4],out);
+    print_tree(false,indent+2,tree->Child(4),out);
     out << endl;
     for (int i=0; i<indent; ++i)
       out << " ";
     out << "</";
-    if (tree->content[1]->root.content!=tree->content[6]->root.content)
-    { pair<int,int> pos = tree->GetPosition();
-      throw string("Start and end tags do not match at line: ") + to_string(pos.first) + ", col: " + to_string(pos.second);
-    }
-    out << tree->content[6]->root.content;
+    if (tree->Child(1)->Token().Content()!=tree->Child(6)->Token().Content())
+      throw string("Start and end tags do not match at: ") + tree->Position();
+    out << tree->Child(6)->Token().Content();
     out << ">";
-    print_tree(false,indent,tree->content[8],out);
+    print_tree(false,indent,tree->Child(8),out);
   }
   else
-    throw string("Unknown tree case: ") + tree->case_name;
+    throw string("Unknown tree case: ") + tree->Case();
 } // }}}
 
 int main(int argc, char **argv)

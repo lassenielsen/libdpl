@@ -30,13 +30,13 @@ Bnf::Bnf(const string &bnf_string) // {{{
   init_bnf_tokenizer(bnf_tokenizer);
   bnf_tokenizer.SetBuffer(bnf_string);
   token type_name = bnf_tokenizer.PopToken();
-  if (type_name.name != "id" || bnf_tokenizer.Empty()) // Unexpected token
+  if (type_name.Name() != "id" || bnf_tokenizer.Empty()) // Unexpected token
     throw string("Bnf constructor: Bad BNF: ") + bnf_string;
   else
-    myName=type_name.content;
+    myName=type_name.Content();
 
   token t = bnf_tokenizer.PopToken();
-  if (t.name != "::=") // Unexpected token
+  if (t.Name() != "::=") // Unexpected token
     throw string("Bnf constructor: Bad BNF: ") + bnf_string;
 
   vector<string> c;
@@ -54,31 +54,31 @@ Bnf::Bnf(const string &bnf_string) // {{{
 
     t = bnf_tokenizer.PopToken();
 
-    if (t.name=="tag")
+    if (t.Name()=="tag")
     { if (c.size()==0)
-        cname=t.content.substr(2);
+        cname=t.Content().substr(2);
       else
-        myTags[cname][t.content.substr(2)]=c.size()-1;
+        myTags[cname][t.Content().substr(2)]=c.size()-1;
     }
-    else if (t.name == "|" || t.name == "_EOF") // End current production
+    else if (t.Name() == "|" || t.Name() == "_EOF") // End current production
     {
       myCases[cname]=c;
       cname="";
       c.clear();
     }
-    else if (t.name == ":->")
+    else if (t.Name() == ":->")
     { t = bnf_tokenizer.PopToken();
-      if (t.name=="string")
-        mySugar[cname]=t.content.substr(2,t.content.size()-3);
+      if (t.Name()=="string")
+        mySugar[cname]=t.Content().substr(2,t.Content().size()-3);
       else // Tokenizer error
            // hack: remove all cases
-        throw string("Bnf constructor: Expected sugar-string at: ") + t.content + " in: " + bnf_string;
+        throw string("Bnf constructor: Expected sugar-string at: ") + t.Content() + " in: " + bnf_string;
     }
-    else if (t.name == "id")
-      c.push_back(t.content);
+    else if (t.Name() == "id")
+      c.push_back(t.Content());
     else // Tokenizer error
          // hack: remove all cases
-      throw string("Bnf constructor: Bad BNF at: ") + t.content + " in: " + bnf_string;
+      throw string("Bnf constructor: Bad BNF at: ") + t.Content() + " in: " + bnf_string;
   }
 } // }}}
 
