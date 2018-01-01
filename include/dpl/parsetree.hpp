@@ -37,7 +37,7 @@ class parsetree // {{{
      *  because the result contains the token names instead of the content. 
      */
     // }}}
-    std::string ToString(bool include_cases=false);
+    std::string ToString(bool include_cases=false) const;
 
     //! Returns the line in (in input) of earliest token used in parsetree
     int Line() const {return GetPosition().first;}
