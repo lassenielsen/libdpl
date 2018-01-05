@@ -1,5 +1,6 @@
 #include <dpl/bnf.hpp>
 #include <dpl/tokenizer.hpp>
+#include <dpl/common.hpp>
 #include <iostream>
 #include <sstream>
 #include <fstream>
@@ -69,7 +70,7 @@ Bnf::Bnf(const string &bnf_string) // {{{
     else if (t.Name() == ":->")
     { t = bnf_tokenizer.PopToken();
       if (t.Name()=="string")
-        mySugar[cname]=t.Content().substr(2,t.Content().size()-3);
+        mySugar[cname]=stringreplace(t.Content().substr(2,t.Content().size()-3),"\\\"","\"");
       else // Tokenizer error
            // hack: remove all cases
         throw string("Bnf constructor: Expected sugar-string at: ") + t.Content() + " in: " + bnf_string;
