@@ -163,7 +163,16 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
         break;
       }
       else
-      { throw string("next=") + next->Type() + " is not accepted at current location: " + next->Position();
+      { stringstream ss;
+        ss << "next=" << next->Type() << " is not accepted at current location: " << next->Position() << endl
+           << "With istack:" << endl;
+        for (size_t i=0; i<tree_stack.size(); ++i)
+          ss << " - " << tree_stack[i]->TypeCase() << "@" << tree_stack[i]->Position() << endl;
+        ss << "Exprected symbols are:" << endl;
+        set<string> expected=ExpectedSymbols(state_stack.back());
+        for (set<string>::const_iterator it=expected.begin(); it!=expected.end(); ++it)
+          ss << " + " << *it << endl;
+        throw ss.str();
       }
     }
   }
@@ -228,6 +237,20 @@ void SlrParser::EpsilonClosure(set<node> &state) // {{{
     }
    
   }
+} // }}}
+
+set<string> SlrParser::ExpectedSymbols(int state) // {{{
+{ set<string> result;
+  set<node> source=myStates[state];
+  for (set<node>::const_iterator n=source.begin(); n!=source.end(); ++n)
+  { SymBnf &n_bnf=GetType(n->t);
+    const vector<string> &n_case=n_bnf.Case(n->c);
+    if (n->p<n_case.size())
+      result.insert(n_case[n->p]);
+    else if (n->p==n_case.size())
+      result.insert(n_bnf.Post().begin(),n_bnf.Post().end());
+  }
+  return result;
 } // }}}
 
 SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) // {{{

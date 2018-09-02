@@ -82,6 +82,8 @@ class SlrParser : public SymParser // {{{
     //std::map<std::string,SymBnf> myTypes;
     std::string myInit;
 
+    //! For parser error messages - Find the symbols that could have been used
+    std::set<std::string> ExpectedSymbols(int state);
     //! Return index of state if present, otherwise -1
     int FindState(const std::set<node> &state) const;
     //! Find dest if in states, otherwise add it and return index
