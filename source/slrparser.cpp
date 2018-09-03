@@ -165,13 +165,15 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
       else
       { stringstream ss;
         ss << "next=" << next->Type() << " is not accepted at current location: " << next->Position() << endl
-           << "With istack:" << endl;
+           << "With stack:" << endl;
         for (size_t i=0; i<tree_stack.size(); ++i)
           ss << " - " << tree_stack[i]->TypeCase() << "@" << tree_stack[i]->Position() << endl;
+        ss << "With state:" << endl << StateString(state_stack.back()) << endl;
         ss << "Exprected symbols are:" << endl;
         set<string> expected=ExpectedSymbols(state_stack.back());
         for (set<string>::const_iterator it=expected.begin(); it!=expected.end(); ++it)
-          ss << " + " << *it << endl;
+          ss << " " << *it;
+	ss << endl;
         throw ss.str();
       }
     }
@@ -251,6 +253,23 @@ set<string> SlrParser::ExpectedSymbols(int state) // {{{
       result.insert(n_bnf.Post().begin(),n_bnf.Post().end());
   }
   return result;
+} // }}}
+
+string SlrParser::StateString(int state) // {{{
+{ stringstream result;
+  set<node> source=myStates[state];
+  for (set<node>::const_iterator n=source.begin(); n!=source.end(); ++n)
+  { SymBnf &n_bnf=GetType(n->t);
+    const vector<string> &n_case=n_bnf.Case(n->c);
+    result << n->t << "." << n->c << ":";
+    for (size_t i=0; i<n->p; ++i)
+      result << " " << n_case[i];
+    result << "::>";
+    for (size_t i=n->p; i<n_case.size(); ++i)
+      result << " " << n_case[i];
+    result << endl;
+  }
+  return result.str();
 } // }}}
 
 SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) // {{{
