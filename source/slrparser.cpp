@@ -321,7 +321,7 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
   if (shift_dest.size()>0 && reduce_type.size()>0)
   { map<string,bool>::const_iterator rule=mySRRules.find(reduce_type);
     if (rule==mySRRules.end())
-      cerr << "Shift-reduce conflict on type:" << reduce_type << endl;
+      cerr << "Shift-reduce conflict on reduce type:" << reduce_type << " and shift node: " << shift_dest.begin()->t << ":" << shift_dest.begin()->c << "@" << shift_dest.begin()->p << endl;
     else if (rule->second)
       shift_dest.clear();
     else
