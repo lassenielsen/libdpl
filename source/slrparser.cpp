@@ -163,7 +163,18 @@ parsetree *SlrParser::Parse(const string &buffer) // {{{
         break;
       }
       else
-      { throw string("next=") + next->Type() + " is not accepted at current location: " + next->Position();
+      { stringstream ss;
+        ss << "next=" << next->Type() << " is not accepted at current location: " << next->Position() << endl
+           << "With stack:" << endl;
+        for (size_t i=0; i<tree_stack.size(); ++i)
+          ss << " - " << tree_stack[i]->TypeCase() << "@" << tree_stack[i]->Position() << endl;
+        ss << "With state:" << endl << StateString(state_stack.back()) << endl;
+        ss << "Exprected symbols are:" << endl;
+        set<string> expected=ExpectedSymbols(state_stack.back());
+        for (set<string>::const_iterator it=expected.begin(); it!=expected.end(); ++it)
+          ss << " " << *it;
+	ss << endl;
+        throw ss.str();
       }
     }
   }
@@ -230,6 +241,37 @@ void SlrParser::EpsilonClosure(set<node> &state) // {{{
   }
 } // }}}
 
+set<string> SlrParser::ExpectedSymbols(int state) // {{{
+{ set<string> result;
+  set<node> source=myStates[state];
+  for (set<node>::const_iterator n=source.begin(); n!=source.end(); ++n)
+  { SymBnf &n_bnf=GetType(n->t);
+    const vector<string> &n_case=n_bnf.Case(n->c);
+    if (n->p<n_case.size())
+      result.insert(n_case[n->p]);
+    else if (n->p==n_case.size())
+      result.insert(n_bnf.Post().begin(),n_bnf.Post().end());
+  }
+  return result;
+} // }}}
+
+string SlrParser::StateString(int state) // {{{
+{ stringstream result;
+  set<node> source=myStates[state];
+  for (set<node>::const_iterator n=source.begin(); n!=source.end(); ++n)
+  { SymBnf &n_bnf=GetType(n->t);
+    const vector<string> &n_case=n_bnf.Case(n->c);
+    result << n->t << "." << n->c << ":";
+    for (size_t i=0; i<n->p; ++i)
+      result << " " << n_case[i];
+    result << "::>";
+    for (size_t i=n->p; i<n_case.size(); ++i)
+      result << " " << n_case[i];
+    result << endl;
+  }
+  return result.str();
+} // }}}
+
 SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) // {{{
 { map<pair<int,string>,action>::const_iterator edge = myTransitions.find(pair<int,string>(state,symbol));
   if (edge!=myTransitions.end())
@@ -279,7 +321,7 @@ SlrParser::action SlrParser::FindAction(int state, const std::string &symbol) //
   if (shift_dest.size()>0 && reduce_type.size()>0)
   { map<string,bool>::const_iterator rule=mySRRules.find(reduce_type);
     if (rule==mySRRules.end())
-      cerr << "Shift-reduce conflict on type:" << reduce_type << endl;
+      cerr << "Shift-reduce conflict on reduce type:" << reduce_type << " and shift node: " << shift_dest.begin()->t << ":" << shift_dest.begin()->c << "@" << shift_dest.begin()->p << endl;
     else if (rule->second)
       shift_dest.clear();
     else

@@ -11,7 +11,7 @@
 # - Lasse Nielsen.                                                    #
 #=====================================================================#
 name = dpl
-version = 2018
+version = 2018.1
 libname = lib$(name).so
 #OS_LINUXlibname = lib$(name).so
 #OS_MAClibname = lib$(name).dylib
@@ -28,13 +28,13 @@ args = -std=c++0x -fPIC $(opt) -I./include/
 #OS_LINUXlibs = -lrcp
 
 library_objects = \
-  objects/tokenizer.o \
-  objects/parsetree.o \
-  objects/bnf.o \
-  objects/parser.o \
-  objects/symbnf.o \
-  objects/symparser.o \
-  objects/slrparser.o
+	objects/tokenizer.o \
+	objects/parsetree.o \
+	objects/bnf.o \
+	objects/parser.o \
+	objects/symbnf.o \
+	objects/symparser.o \
+	objects/slrparser.o
 
 default:
 	@echo "Use make config, make build, sudo make install, make clean and if you don't like it sudo make uninstall."
