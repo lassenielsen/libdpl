@@ -28,6 +28,9 @@ class SlrParser : public SymParser // {{{
     //! Perform SLR algorithm on buffer and return the found parsetree
     virtual parsetree *Parse(const std::string &buffer);
 
+    //! Return a C++ program containing a precompiled parser for the current language
+    virtual std::string Compile();
+
     // DOCUMENTATION {{{
     //! Represents a NFA node.
     /*! This is specified by position in a specific case in a specific type.
