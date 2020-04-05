@@ -158,9 +158,9 @@ bool Tokenizer::DefToken(string def, int priority) // {{{
     def=def.substr(1);
   while (def.size()>0 && def[0]!='"')
   {
-    if (def.substr(0,2) == "\\\"")
+    if (def[0] == '\\' && def.length()>=2)
     {
-      exp += "\"";
+      exp += def[1];
       def = def.substr(2);
     }
     else

@@ -21,7 +21,7 @@ inline std::string double2string(double d) // {{{
   std::string s = ss.str();
   return s;
 } // }}}
-inline double string2double(std::string s) // {{{
+inline double string2double(const std::string &s) // {{{
 {
   std::stringstream ss;
   ss.clear();
@@ -76,10 +76,10 @@ inline std::string stringreplace(const std::string &source, const std::string &f
 inline std::string stuff_string(std::string input) // {{{
 { return stringreplace(stringreplace(input,"\\","\\\\"),"\"","\\\"");
 } // }}}
-inline std::string wrap_string(std::string input) // {{{
+inline std::string wrap_string(const std::string &input) // {{{
 { return (std::string)"\""+stuff_string(input)+"\"";
 } // }}}
-inline std::string unwrap_string(std::string input) // {{{
+inline std::string unwrap_string(const std::string &input) // {{{
 { std::string value = input.substr(1,input.size()-2);
   return stringreplace(stringreplace(value,"\\\\","\\"),"\\\"","\"");
 } // }}}
