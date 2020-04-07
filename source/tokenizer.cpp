@@ -119,63 +119,58 @@ void Tokenizer::DefToken(const string &name, const string &exp, int priority) //
   myDirty=true;
 } // }}}
 
-bool Tokenizer::DefToken(string def, int priority) // {{{
-{
-  string name="";
+bool Tokenizer::DefToken(const string &def, int priority) // {{{
+{ string name="";
   string exp="";
-  while (def.size()>0 && (def[0]==' ' || def[0]=='\t' || def[0]=='\r' || def[0]=='\n'))
-    def=def.substr(1);
-  while (def.size()>0 && def[0]!=' ' && def[0]!='\t' && def[0]!='\r' && def[0]!='\n' && def.substr(0,2)!=":=")
-  {
-    name+=def[0];
-    def=def.substr(1);
+  size_t pos=0;
+  while (def.size()-pos>0 && (def[pos]==' ' || def[pos]=='\t' || def[pos]=='\r' || def[pos]=='\n'))
+    ++pos;
+  while (def.size()-pos>0 && def[pos]!=' ' && def[pos]!='\t' && def[pos]!='\r' && def[pos]!='\n' && (def.size()-pos<2 || def.substr(pos,2)!=":="))
+  { name+=def[pos];
+    ++pos;
   }
-  while (def.size()>0 && (def[0]==' ' || def[0]=='\t' || def[0]=='\r' || def[0]=='\n'))
-    def=def.substr(1);
-  if (def.substr(0,2) != ":=") // Not correct format
+  while (def.size()-pos>0 && (def[pos]==' ' || def[pos]=='\t' || def[pos]=='\r' || def[pos]=='\n'))
+    ++pos;
+  if (def.size()-pos<2 || def.substr(pos,2) != ":=") // Not correct format
     return false;
   else
-    def=def.substr(2);
-  if (def[0]=='_') // Extract priority
+    pos+=2;
+  if (def[pos]=='_') // Extract priority
   { if (priority>=0)
       return false;
     string prio;
-    def=def.substr(1);
-    while (def[0]>='0' && def[0]<='9')
-    { prio += def[0];
-      def=def.substr(1);
+    ++pos;
+    while (def.size()-pos>0 && def[pos]>='0' && def[pos]<='9')
+    { prio += def[pos];
+      ++pos;
     }
     if (prio=="")
       return false;
     priority = stoi(prio);
   }
     
-  while (def.size()>0 && (def[0]==' ' || def[0]=='\t' || def[0]=='\r' || def[0]=='\n'))
-    def=def.substr(1);
-  if (def[0] != '"') // Not correct format
+  while (def.size()-pos>0 && (def[pos]==' ' || def[pos]=='\t' || def[pos]=='\r' || def[pos]=='\n'))
+    ++pos;
+  if (def[pos] != '"') // Not correct format
     return false;
   else
-    def=def.substr(1);
-  while (def.size()>0 && def[0]!='"')
+    ++pos;
+  while (def.size()-pos>0 && def[pos]!='"')
   {
-    if (def[0] == '\\' && def.length()>=2)
-    {
-      exp += def[1];
-      def = def.substr(2);
-    }
+    if (def[pos] == '\\' && def.length()-pos>=2)
+      exp += def[++pos];
     else
-    {
-      exp+=def[0];
-      def=def.substr(1);
-    }
+      exp+=def[pos];
+    ++pos;
   }
-  if (def[0] != '"') // Not correct format
+  if (def.size()-pos>0 && def[pos] != '"') // Not correct format
     return false;
 
   if (priority<0)
     priority=0;
   
   DefToken(name,exp,priority);
+  def.substr(pos);
   return true;
 } // }}}
 
