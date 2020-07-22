@@ -33,7 +33,7 @@ const string bnf_exp = "\n\
 # A small ttd (Token- and Type-Definitions) file defining a sequence of pairs\n\
 \n\
 # TOKENS\n\
-    := \"[ \\n\\r\\t][ \\n\\r\\t]*\"\n\
+    := \"[ \\\\n\\\\r\\\\t][ \\\\n\\\\r\\\\t]*\"\n\
 num := \"[0-9][0-9]*\"\n\
 id  := \"[a-zA-Z][a-zA-Z0-9]*\"\n\
 ~   := \"~\"\n\
