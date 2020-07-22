@@ -24,6 +24,7 @@ inline bool init_bnf_tokenizer(Tokenizer &tokenizer) // {{{
 
 Bnf::Bnf(const string &bnf_string) // {{{
 {
+  //cout << "Bnf::Bnf(\"" << bnf_string << "\")" << endl;
   if (bnf_string=="")
     return; // Create empty Bnf
 
@@ -32,13 +33,13 @@ Bnf::Bnf(const string &bnf_string) // {{{
   bnf_tokenizer.SetBuffer(bnf_string);
   token type_name = bnf_tokenizer.PopToken();
   if (type_name.Name() != "id" || bnf_tokenizer.Empty()) // Unexpected token
-    throw string("Bnf constructor: Bad BNF: ") + bnf_string;
+    throw string("Bnf constructor: Expected id but found ") + type_name.Name() + " in " + bnf_string;
   else
     myName=type_name.Content();
 
   token t = bnf_tokenizer.PopToken();
   if (t.Name() != "::=") // Unexpected token
-    throw string("Bnf constructor: Bad BNF: ") + bnf_string;
+    throw string("Bnf constructor: Expected ::= but found ") + t.Name() + " in " + bnf_string;
 
   vector<string> c;
   string cname = "";

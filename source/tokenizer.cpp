@@ -223,6 +223,34 @@ int tokenid(vector<tokendef> &tokens, const RV &value, int start=0, int end=-1) 
     throw "tokenid: Non inl/inr value";
 } // }}}
 
+void decode_token(vector<tokendef> &tokens, const BitCode &code, int &pos, const RE *exp, string &dest_name, string &dest_content, int start=0, int end=-1) // {{{
+{ if (end<0)
+    end = tokens.size()-1;
+  if (end<start) // no tokens
+    throw "tokenid: no tokendefs";
+  for (;;)
+  { if (start==end)
+      break;
+    else if (code.GetBit(pos++)==BitCode::INL) //  go left
+    { end=(start+end)/2;
+      exp=&((const RE_Sum*)exp)->GetLeft();
+      continue;
+    }
+    else // go right
+    { start=(start+end)/2+1;
+      exp=&((const RE_Sum*)exp)->GetRight();
+      continue;
+    }
+  }
+  // Store result
+  stringstream content;
+  exp->Decode(code,pos,content);
+  dest_content=content.str();
+  dest_name=tokens[start].name;
+  //cout << "decode_token returns: [" << dest_name << "," << dest_content << ", " << start << ", " << end << "]" << endl;
+  return;
+} // }}}
+
 void Tokenizer::SetBuffer(const string &buffer) // {{{
 { // Compress buffer using current tokens
   if (myDirty && myStar!=NULL)
@@ -279,10 +307,11 @@ token Tokenizer::PopToken() // {{{
     else if (myCompressed.GetBit(myPos)==BitCode::CONS) // contains token
     { ++myPos; // myCompressed=myCompressed.substr(1);
       // use myPos int pos=0;
-      RV *token_value=myStar->GetSub().Decompress(myCompressed,myPos);
-      int tid=tokenid(myTokenDefs,*token_value); // Find index of tokendef
-      token_name=myTokenDefs[tid].name;
-      token_content=token_value->Flatten();
+      //RV *token_value=myStar->GetSub().Decompress(myCompressed,myPos);
+      //int tid=tokenid(myTokenDefs,*token_value); // Find index of tokendef
+      //token_name=myTokenDefs[tid].name;
+      //token_content=token_value->Flatten();
+      decode_token(myTokenDefs,myCompressed,myPos,&myStar->GetSub(),token_name,token_content);
       // Update position
       token_line=myCurrentLine;
       token_column=myCurrentColumn;
@@ -294,7 +323,7 @@ token Tokenizer::PopToken() // {{{
         else
           ++myCurrentColumn;
       }
-      delete token_value;
+      //delete token_value;
       // myPos incremented by Decompress
     }
     else
